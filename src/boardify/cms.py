@@ -1,7 +1,8 @@
 """Generate the Sveltia CMS configuration (admin/config.yml and admin/index.html) from the folder tree.
 
 The tree is the source of truth: one singleton per section index page, a Policies collection per
-section, and a Regulations collection for every section that has a regulation.md. Re-run
+section, then (listed after all the Policies) a Regulations collection for every section that has a
+regulation.md. Re-run
 `boardify cms-config` after adding a section or the first regulation in one.
 """
 import json
@@ -51,15 +52,22 @@ def singleton(name, label, file):
 
 
 def collection(cfg, section, kind):
+    """A flat collection for one section and kind, or (section=None) a tree of all sections."""
     plural = "Policies" if kind == "Policy" else "Regulations"
     page = "index" if kind == "Policy" else "regulation"
     root = cfg["policies_root"]
-    return f"""  - name: {q(f"{section['slug']}_{plural.lower()}")}
-    label: {q(f"{section['code']} - {section['title']} ({plural})")}
+    if section:
+        name, label = f"{section['slug']}_{plural.lower()}", f"{plural} – {section['code']} {section['title']}"
+        folder, depth = f"{root}/{section['folder']}", 2
+    else:
+        name, label = plural.lower(), plural
+        folder, depth = root, 3  # <section>/<code>-<slug>/<page>
+    return f"""  - name: {q(name)}
+    label: {q(label)}
     label_singular: {kind}
-    folder: {q(f"{root}/{section['folder']}")}
+    folder: {q(folder)}
     nested:
-      depth: 2
+      depth: {depth}
       subfolders: false
     path: '{{{{code}}}}-{{{{title}}}}/{page}'
     filter: {{field: kind, value: {kind}}}
@@ -118,10 +126,18 @@ def build_config(cfg):
     for s in secs:
         out.append(singleton(f"{s['slug']}_page", f"{s['title']} Page", f"{root.as_posix()}/{s['folder']}/index.md"))
     out.append("collections:\n")
-    for s in secs:
-        out.append(collection(cfg, s, "Policy"))
-        if s["regulations"]:
-            out.append(collection(cfg, s, "Regulation"))
+    if cms["layout"] == "tree":
+        out.append(collection(cfg, None, "Policy"))
+        if any(s["regulations"] for s in secs):
+            out.append(collection(cfg, None, "Regulation"))
+    elif cms["layout"] == "sections":
+        for s in secs:
+            out.append(collection(cfg, s, "Policy"))
+        for s in secs:
+            if s["regulations"]:
+                out.append(collection(cfg, s, "Regulation"))
+    else:
+        raise SystemExit('[tool.boardify.cms] layout must be "sections" or "tree"')
     return "".join(x if x.endswith("\n") else x + "\n" for x in out)
 
 
