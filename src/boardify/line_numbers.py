@@ -1,6 +1,5 @@
 import re
 
-
 BLOCK_MARKER_RE = re.compile(r"^(\s*(?:[-*+]\s+|\d+\.\s+|#{1,6}\s+|>\s+))(.*)$", re.DOTALL)
 
 

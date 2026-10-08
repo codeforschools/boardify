@@ -4,15 +4,26 @@ version = "0.1.0"
 description = "Tooling for policy-manual sites: structure checks, PDFs and redlines."
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.14"
-dependencies = [
-    "boto3",
-    "Jinja2",
-    "mistune",
-    "python-frontmatter",
-    "unidiff",
-    "weasyprint",
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Text Processing :: Markup :: Markdown",
 ]
+dependencies = [
+    "boto3>=1.34",
+    "Jinja2>=3.1",
+    "mistune>=3",
+    "python-frontmatter>=1.1",
+    "unidiff>=0.7",
+    "weasyprint>=62",
+]
+
+[project.urls]
+Source = "https://github.com/codeforschools/boardify"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
 
 [project.scripts]
 boardify = "boardify.cli:main"
@@ -26,3 +37,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/boardify", "src/boardify_theme"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

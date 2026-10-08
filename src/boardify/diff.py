@@ -11,7 +11,6 @@ from unidiff import PatchSet
 from .line_numbers import annotate_line, body_start_line, split_marker
 from .naming import pdf_name
 
-
 INDEX_RE = re.compile(r"^index ([0-9a-f]+)\.\.([0-9a-f]+)")
 
 
@@ -31,6 +30,7 @@ def get_blob(blob_hash):
         ["git", "cat-file", "-p", blob_hash],
         capture_output=True,
         encoding="utf-8",
+        check=False,
     )
     return result.stdout if result.returncode == 0 else ""
 
@@ -205,5 +205,4 @@ def save_json(filename, cfg):
     data["title"] = os.getenv("TITLE", "Policy/Regulation Changes")
     with open(f"{cfg['output_dir']}/diff.json", "w") as json_file:
         json.dump(data, json_file, indent=4)
-    return
 

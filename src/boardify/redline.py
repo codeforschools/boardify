@@ -38,7 +38,6 @@ def build_redline_pdf(context, cfg):
         string=output,
     )
     weasy_obj.write_pdf(outfile)
-    return
 
 
 def main(json_path, cfg):
@@ -48,5 +47,4 @@ def main(json_path, cfg):
     files = data["added_files"] + data["removed_files"] + data["modified_files"]
     for context in files:
         build_redline_pdf(context, cfg)
-    return
 

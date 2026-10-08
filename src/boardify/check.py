@@ -3,10 +3,9 @@ import re
 from pathlib import Path
 
 
-
 def frontmatter(path):
-    m = re.match(r"---\n(.*?)\n---", path.read_text(), re.S)
-    return dict(re.findall(r"^([A-Za-z_][\w-]*):[ ]*(.*)$", m.group(1), re.M)) if m else {}
+    m = re.match(r"---\n(.*?)\n---", path.read_text(), re.DOTALL)
+    return dict(re.findall(r"^([A-Za-z_][\w-]*):[ ]*(.*)$", m.group(1), re.MULTILINE)) if m else {}
 
 
 def main(cfg):
