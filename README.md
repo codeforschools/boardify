@@ -31,4 +31,18 @@ pdf_prefix = "pdfs"
 logo_url = "https://example.org/logo.png"
 ```
 
-`examples/workflows/` holds the GitHub Actions the original site used. They still reference MkDocs in places and have not yet been converted to reusable workflows. `overrides/` and `wiki/` are carried over from the original `board` repo and are not yet generalized.
+## Theme
+The wheel also ships a Zensical theme, `boardify_theme` (extends the built-in theme; shows "code kind" in the nav and adds the Policy header, references and "Download PDF" link). Enable it in the content repo's `zensical.toml`:
+
+```toml
+[project.theme]
+name = "boardify"
+
+[project.extra]
+# https://s3.<AWS_S3_REGION>.amazonaws.com/<AWS_S3_BUCKET>/<pdf_prefix>
+pdf_base_url = "https://s3.us-west-2.amazonaws.com/example.org/pdfs"
+```
+
+`pdf_base_url` cannot be derived from the `AWS_S3_*` variables at build time: Zensical only passes its own theme keys to templates and `zensical.toml` has no env expansion. Use the path-style form above (bucket names may contain dots).
+
+`examples/workflows/` holds the GitHub Actions the original site used. They still reference MkDocs in places and have not yet been converted to reusable workflows. `wiki/` is carried over from the original `board` repo and is not yet generalized.

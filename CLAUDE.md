@@ -17,4 +17,5 @@ Run from a content repo root (settings: `[tool.boardify]`, defaults in `config.p
 - `naming.py` is the single source of PDF names (`{code}-{kind}-{title-slug}`); keys must match the site's "Download PDF" link, so change the slug rule in both places. `delete-pdf` reads frontmatter of removed files via `git show REV:path`.
 - `diff.py` doesn't just parse hunks: it fetches full before/after blobs by hash (`git cat-file`) and does word-level diffing, so it must run inside a git checkout of the content repo.
 - `check.py` parses frontmatter with a regex, while `pdf`/`diff` use `python-frontmatter`; keep their expectations aligned.
-- `examples/workflows/`, `overrides/`, `wiki/` are carried over from the old `board` repo and not yet generalized (some still reference MkDocs).
+- `src/boardify_theme/` is a Zensical theme registered via the `mkdocs.themes` entry point (`name = "boardify"`). `partials/nav-item.html` is a copy of Zensical's with one marked edit; re-sync it on Zensical upgrades. Templates only see Zensical's own theme keys, so site-specific values (e.g. `pdf_base_url`) come from `[project.extra]`, and the PDF slug rule is duplicated in `main.html` (keep in sync with `naming.py`).
+- `examples/workflows/` and `wiki/` are carried over from the old `board` repo and not yet generalized (some still reference MkDocs).

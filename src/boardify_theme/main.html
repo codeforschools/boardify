@@ -38,7 +38,8 @@
 
   {% if page.meta.kind %}
     <p>
-      <a href='https://s3.us-west-2.amazonaws.com/westada.org/pdfs/{{page.meta.code}}-{{page.meta.kind | lower }}-{{page.meta.title | lower | replace(" ", "-")| replace(",", "")| replace("(", "")| replace(")", "")}}.pdf'>Download PDF</a>
+      {# Slug rule must match boardify.naming.slugify_title. #}
+      <a href="{{ config.extra.pdf_base_url }}/{{ page.meta.code }}-{{ page.meta.kind | lower }}-{{ page.meta.title | lower | replace(' ', '-') | replace(',', '') | replace('(', '') | replace(')', '') }}.pdf">Download PDF</a>
     </p>
   {% endif %}
 {% endblock content %}
