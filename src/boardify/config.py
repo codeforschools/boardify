@@ -17,6 +17,8 @@ CMS_DEFAULTS = {
     "base_url": "",  # OAuth proxy for the GitHub backend
     "app_title": "Policy Manager",
     "sveltia_version": "",  # exact @sveltia/cms version to load (required: no unpinned CDN scripts)
+    "sveltia_integrity": "",  # optional Subresource Integrity hash for that version's script
+    "logo": "/assets/images/logo.png",  # shown on the CMS login screen
     "config_path": "content/admin/config.yml",
     "index_path": "content/admin/index.html",
     "media_folder": "content/assets",

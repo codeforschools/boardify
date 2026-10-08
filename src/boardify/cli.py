@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from . import check, config, delete, diff, pdf, redline
+from . import check, cms, config, delete, diff, pdf, redline
 
 
 def parse_paths(values):
@@ -29,10 +29,15 @@ def main(argv=None):
     p = sub.add_parser("redline", help="build redline PDFs from output/diff.json")
     p.add_argument("--json", default=None)
 
+    p = sub.add_parser("cms-config", help="generate the Sveltia CMS config from the content folders")
+    p.add_argument("--check", action="store_true", help="fail if the generated files are out of date")
+
     args = parser.parse_args(argv)
     cfg = config.load()
     if args.command == "check":
         return check.main(cfg)
+    if args.command == "cms-config":
+        return cms.main(cfg, check=args.check)
     if args.command == "pdf":
         return pdf.main(parse_paths(args.paths), cfg, upload=args.upload)
     if args.command == "delete-pdf":
