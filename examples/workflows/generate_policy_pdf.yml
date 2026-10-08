@@ -1,0 +1,51 @@
+# This generates draft PDFs from the policies for the readings and uploads them as artifacts.
+name: Build Policy PDFs
+on:
+  pull_request:
+    paths:
+      - 'content/policies/**'
+jobs:
+  build_policy_packet:
+    name: Build ${{ github.event.pull_request.title }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repo.
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Create output directory.
+        run: |
+          mkdir -p output
+      - name: Install Python.
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Install project dependencies
+        run: uv sync --no-dev
+      - name: Set policy filepaths.
+        run: |
+          echo "filepaths=$(gh pr view ${{ github.event.number }} --json files --jq '[.files[] | select((.changeType != "DELETED") and (.path | endswith(".md")))] | map(.path)| join(",")')" >> $GITHUB_ENV
+      - name: Build policy PDF.
+        run: |
+          uv run boardify pdf ${{env.filepaths}}
+      - name: Build content diff.
+        run: |
+          gh pr diff ${{ github.event.number }} > output/diff.diff
+      - name: Build diff JSON.
+        run: |
+          uv run boardify diff
+      - name: Build diff PDFs.
+        run: |
+          uv run boardify redline
+      - name: Cleanup output.
+        run: rm output/diff.*
+      - name: Upload PDFs as artifact.
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ github.event.pull_request.title || 'Rescinded Policy'}}
+          path: output

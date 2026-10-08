@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>
+      {{ context.title }}
+    </title>
+    <style>
+      {% block style %}
+      @media print {
+        * {
+          background: transparent !important;
+          /*color: black !important;*/
+        }
+
+        html {
+          font-size: 100%;
+        }
+
+        body {
+          color: #444;
+          font-family: Helvetica;
+          font-size: 14px;
+          line-height: 1.2;
+          padding: 1em 1em 1em 3.5em;
+          margin: auto;
+          max-width: 42em;
+          background: #fefefe;
+          /*padding-bottom: 150px; /* Must be at least the height of your footer */*/
+        }
+
+        main p, main li, main h1, main h2, main h3, main h4, main h5, main h6,
+        main blockquote p {
+          position: relative;
+        }
+
+        main .ln {
+          position: absolute;
+          left: -2.5em;
+          width: 2em;
+          text-align: right;
+          font-family: monospace;
+          font-size: 0.7em;
+          color: #999;
+          user-select: none;
+        }
+
+        /* <li> content sits one extra list indent (2em) to the right of
+           <p>/<h*>, so its line number needs the same extra offset to land
+           in the same gutter column instead of overlapping the bullet. */
+        main li .ln {
+          left: -4.5em;
+        }
+
+        main {
+          /*padding-bottom: 150px; /* Must be at least the height of your footer */*/
+        }
+        aside {
+          font-family: Helvetica;
+          font-size: 8px;
+          /*padding-bottom: 150px; /* Must be at least the height of your footer */*/
+        }
+
+
+        footer {
+          /*position: fixed;*/
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 50px; /* Define a height for the footer */
+          background-color: #f4f4f4;
+          text-align: center;
+          /* Ensure the footer content has space */
+          padding: 10px 0;
+        }
+
+        aside {
+          font-family: Helvetica;
+          font-size: 8px;
+        }
+
+        a, a:visited  {
+          text-decoration: underline;
+        }
+
+        a[href]:after {
+          content: " (" attr(href) ")";
+        }
+
+        abbr[title]:after {
+          content: " (" attr(title) ")";
+        }
+
+        p {
+          margin: 1em 0;
+        }
+
+        tr, img {
+          page-break-inside: avoid;
+        }
+
+        img {
+          height: auto;
+          width: auto;
+          border: 0;
+          vertical-align: middle;
+        }
+
+        p, h2, h3 {
+          orphans: 3;
+          widows: 3;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+          color: #111;
+          line-height: 125%;
+          margin-top: 1.5em;
+          font-weight: normal;
+        }
+
+        h2, h3, h4, h5, h6 {
+          page-break-after: avoid;
+        }
+
+        h1 {
+          font-size: 2em;
+          font-weight: bold;
+          /*page-break-before: always;*/
+        }
+
+        h2 {
+          font-size: 1.8em;
+          font-weight: bold;
+        }
+
+        h3 {
+          font-size: 1.5em;
+          font-weight: bold;
+        }
+
+        h4 {
+          font-size: 1.2em;
+        }
+
+        h5 {
+          font-size: 1em;
+        }
+
+        h6 {
+          font-size: 0.9em;
+        }
+
+        blockquote {
+          color: #666666;
+          margin: 0;
+          padding-left: 3em;
+          border-left: 0.5em #EEE solid;
+        }
+
+        hr {
+          display: block;
+          height: 1px;
+          border: 0;
+          border-top: 1px solid #aaa;
+          border-bottom: 1px solid #eee;
+          margin: 1em 0;
+          padding: 0;
+        }
+
+        pre, blockquote {
+          border: 1px solid #999;
+          padding-right: 1em;
+          page-break-inside: avoid;
+        }
+
+        pre, code, kbd, samp {
+          color: #000;
+          font-family: monospace, monospace;
+          font-size: 0.98em;
+        }
+
+        pre {
+          white-space: pre;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        }
+
+        b, strong {
+          font-weight: bold;
+        }
+
+        dfn {
+          font-style: italic;
+        }
+
+        ins {
+          background: #ff9;
+          color: #000;
+          /*text-decoration: none;*/
+        }
+
+        mark {
+          background: #ff0;
+          color: #000;
+          font-style: italic;
+          font-weight: bold;
+        }
+
+        sub, sup {
+          font-size: 75%;
+          line-height: 0;
+          position: relative;
+          vertical-align: baseline;
+        }
+
+        ul li {
+          margin-bottom: 1em;
+        }
+
+        sup {
+          top: -0.5em;
+        }
+
+        sub {
+          bottom: -0.25em;
+        }
+
+        ul, ol {
+          margin: 1em 0;
+          padding: 0 0 0 2em;
+        }
+
+        li p:last-child {
+          margin-bottom: 0;
+        }
+
+        ul ul, ol ol {
+          margin: .3em 0;
+        }
+
+        dl {
+          margin-bottom: 1em;
+        }
+
+        dt {
+          font-weight: bold;
+          margin-bottom: .8em;
+        }
+
+        dd {
+          margin: 0 0 .8em 2em;
+        }
+
+        dd:last-child {
+          margin-bottom: 0;
+        }
+
+        figure {
+          display: block;
+          text-align: center;
+          margin: 1em 0;
+        }
+
+        figure img {
+          border: none;
+          margin: 0 auto;
+        }
+
+        figcaption {
+          font-size: 0.8em;
+          font-style: italic;
+          margin: 0 0 .8em;
+        }
+
+        table {
+          margin-bottom: 2em;
+          border-bottom: 1px solid #ddd;
+          border-right: 1px solid #ddd;
+          border-spacing: 0;
+          border-collapse: collapse;
+        }
+
+        table th {
+          padding: .2em 1em;
+          background-color: #eee;
+          border-top: 1px solid #ddd;
+          border-left: 1px solid #ddd;
+        }
+
+        table td {
+          padding: .2em 1em;
+          border-top: 1px solid #ddd;
+          border-left: 1px solid #ddd;
+          vertical-align: top;
+        }
+
+        del {
+          background-color: #ffe6e6;
+          color: #b30000;
+        }
+
+        ins {
+          background-color: #e6ffed;
+          color: #00802b;
+          /*text-decoration: none;*/
+        }
+
+        header > img {
+          max-height: 50px;
+        }
+      }
+      {% endblock style %}
+    </style>
+  </head>
+  <body>
+    <header>
+      {% block header %}
+      {% if context.logo_url %}<img alt='Logo' src='{{ context.logo_url }}'>{% endif %}
+      {% endblock header %}
+    </header>
+    <main>
+      {% block main %}
+      {{context.content}}
+      {% endblock main %}
+    </main>
+    <aside>
+      {% block aside %}
+      {{context.reference}}
+      {% endblock aside %}
+    </aside>
+    <!-- <footer>
+      {% block footer %}
+      <hr>
+      &copy; 2026 Joint School District #2
+      {% endblock footer %}
+    </footer> -->
+  </body>
+</html>

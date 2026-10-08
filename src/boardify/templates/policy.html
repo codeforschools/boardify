@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block main %}
+  <h1>
+    {{context.kind}} {{context.code}}
+  </h1>
+  <h2>
+    {{context.title}}
+  </h2>
+  <hr>
+  <br>
+  <p>
+    {{context.content}}
+  </p>
+{% endblock main %}
+{% block aside %}
+  {% if context.reference %}
+    <p>
+      Reference: {{context.reference}}
+    </p>
+  {% endif %}
+{% endblock aside %}

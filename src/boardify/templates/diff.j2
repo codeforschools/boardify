@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block style %}
+{{ super() }}
+@media print {
+  ins {
+    font-weight: bold;
+    text-decoration: none;
+  }
+
+  del {
+    text-decoration: line-through;
+  }
+}
+{% endblock style %}
+{% block main %}
+  <h1>
+    {{context.kind}} {{context.code}}
+  </h1>
+  <h2>
+    {{context.title}}
+  </h2>
+  <hr>
+  <br>
+  <p>
+    {{context.redline_html}}
+  </p>
+{% endblock main %}
+{% block aside %}
+  {% if context.reference %}
+    <p>
+      Reference: {{context.reference}}
+    </p>
+  {% endif %}
+{% endblock aside %}

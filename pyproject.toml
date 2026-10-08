@@ -1,0 +1,25 @@
+[project]
+name = "boardify"
+version = "0.1.0"
+description = "Tooling for policy-manual sites: structure checks, PDFs and redlines."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.14"
+dependencies = [
+    "boto3",
+    "Jinja2",
+    "mistune",
+    "python-frontmatter",
+    "unidiff",
+    "weasyprint",
+]
+
+[project.scripts]
+boardify = "boardify.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/boardify"]
