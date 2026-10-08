@@ -1,0 +1,11 @@
+{#-
+  Replaces Zensical's partials/copyright.html: same markup minus the
+  "Made with Zensical" credit. Re-sync on Zensical upgrades.
+-#}
+<div class="md-copyright">
+  {% if config.copyright %}
+    <div class="md-copyright__highlight">
+      {{ config.copyright }}
+    </div>
+  {% endif %}
+</div>
