@@ -1,5 +1,5 @@
 {#-
-  Copied from Zensical's partials/nav.html; the only change is the nav_root
+  Copied from Zensical's partials/nav.html; the only changes are the nav_root and nav_title
   handling below (marked). Re-sync on Zensical upgrades.
 -#}
 {% import "partials/nav-item.html" as item with context %}
@@ -33,6 +33,12 @@
     </div>
   {% endif %}
   <ul class="md-nav__list" data-md-scrollfix>
+    {# boardify: optional non-clickable heading above the nav, from [project.extra] nav_title #}
+    {% if config.extra.nav_title %}
+      <li class="md-nav__item">
+        <span class="md-nav__link" style="font-weight: 700; cursor: default; pointer-events: none;">{{ config.extra.nav_title }}</span>
+      </li>
+    {% endif %}
     {% for nav_item in root.items %}
       {% set path = "__nav_" ~ loop.index %}
       {{ item.render(nav_item, path, 1) }}
