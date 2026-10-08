@@ -1,6 +1,7 @@
 {#-
-  Copied from Zensical's partials/nav-item.html; the only change is the
-  "code kind" label in render_content (marked below). Re-sync on Zensical upgrades.
+  Copied from Zensical's partials/nav-item.html; the only changes are the
+  "code kind" label in render_content and section title-casing in render_title
+  (both marked below). Re-sync on Zensical upgrades.
 -#}
 {% macro render_status(nav_item, type) %}
   {% set class = "md-status md-status--" ~ type %}
@@ -13,7 +14,20 @@
 {% endmacro %}
 {% macro render_title(nav_item, ref) %}
   {% set ref = ref or nav_item %}
-  {{ ref.title or nav_item.title }}
+  {% set found = namespace(title = ref.title or nav_item.title) %}
+  {# boardify: folder-derived section titles (e.g. "1010-10-student-...") are replaced by the
+     index page's frontmatter title; any remaining all-lowercase ones are title-cased #}
+  {% if ref.children %}
+    {% for child in ref.children %}
+      {% if child.is_index and child.meta and child.meta.title %}
+        {% set found.title = child.meta.title %}
+      {% endif %}
+    {% endfor %}
+    {% if found.title == found.title | lower %}
+      {% set found.title = found.title | replace("-", " ") | replace("_", " ") | title %}
+    {% endif %}
+  {% endif %}
+  {{ found.title }}
 {% endmacro %}
 {% macro render_content(nav_item, ref) %}
   {% set ref = ref or nav_item %}
