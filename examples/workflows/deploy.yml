@@ -1,93 +1,100 @@
-# This workflow deploys the site from the main branch when content changes.
-
+# Deploys the site from main when content, config or the pinned tooling changes.
+# Copy to .github/workflows/deploy.yml in a content repo.
 name: Deploy Site
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - content/**
       - zensical.toml
       - pyproject.toml
+      - uv.lock
+      - .github/workflows/deploy.yml
   workflow_dispatch:
+
+# One deploy at a time; a newer push waits rather than racing the S3 uploads.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
-    # This builds the site itself, including the aforementioned PDFs, and uploads it to production.
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       contents: read
       pages: write
-      id-token: write
+      id-token: write   # Pages deploys, and optional AWS OIDC
+    env:
+      # File names are data, never interpolated into shell: they reach commands through
+      # NUL-separated files and these environment variables.
+      BEFORE: ${{ github.event.before }}
+      AFTER: ${{ github.sha }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Install Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
-
-      - name: Install UV
-        uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
-      - name: Install Dependencies
-        run: uv sync --no-dev
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
 
-      - name: Create output directory.
-        run: mkdir -p output
+      - name: Validate content
+        run: uv run boardify check
 
-      - name: Set changed policy filepaths.
-        id: changed
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            before="${{ github.event.before }}"
-            after="${{ github.event.after }}"
-            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
-              before="${after}^"
-            fi
-            filepaths=$(git diff --name-only --diff-filter=ACMR "$before" "$after" -- content/policies | grep -vE '^content/policies/[^/]+/index\.md$' | paste -sd, -)
-            deleted=$(git diff --name-only --diff-filter=D "$before" "$after" -- content/policies | grep -vE '^content/policies/[^/]+/index\.md$' | paste -sd, -)
-          else
-            filepaths=$(find content/policies -mindepth 3 -name '*.md' | paste -sd, -)
-            deleted=""
-          fi
-          echo "filepaths=$filepaths" >> "$GITHUB_OUTPUT"
-          echo "deleted=$deleted" >> "$GITHUB_OUTPUT"
+      # Optional: authenticate to AWS with a role instead of long-lived keys. Set the
+      # repository variable AWS_ROLE_ARN (and AWS_S3_REGION as a secret/variable) to use it.
+      - name: Assume AWS role
+        if: ${{ vars.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_S3_REGION }}
 
-      - name: Build and Upload Policy PDFs
-        if: steps.changed.outputs.filepaths != ''
-        env:
-          AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
-          AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
-          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
-        run: |
-          uv run boardify pdf --upload "${{ steps.changed.outputs.filepaths }}"
-
-      - name: Delete Removed Policy PDFs
-        if: steps.changed.outputs.deleted != ''
-        env:
-          AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
-          AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
-          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
-        run: |
-          uv run boardify delete-pdf --base "${{ github.event.before }}" "${{ steps.changed.outputs.deleted }}"
-
-      - name: Build Site
+      # Build the site first: if it fails, nothing has been published to S3 yet.
+      - name: Build site
         run: uv run zensical build
 
-      - name: Upload Site Artifact
-        uses: actions/upload-pages-artifact@v5
+      - name: List changed and removed policy files
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            base="$BEFORE"
+            git diff -z --name-only --diff-filter=ACMR "$base" "$AFTER" -- content/policies > "$RUNNER_TEMP/changed.z"
+            git diff -z --name-only --diff-filter=D "$base" "$AFTER" -- content/policies > "$RUNNER_TEMP/deleted.z"
+          else
+            find content/policies -mindepth 3 -name '*.md' -print0 > "$RUNNER_TEMP/changed.z"
+            : > "$RUNNER_TEMP/deleted.z"
+          fi
+
+      - name: Build and upload policy PDFs
+        env:
+          AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
+          AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+        run: xargs -0 -r uv run boardify pdf --upload < "$RUNNER_TEMP/changed.z"
+
+      - name: Delete PDFs of removed policies
+        env:
+          AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
+          AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+        run: xargs -0 -r uv run boardify delete-pdf --base "$BEFORE" < "$RUNNER_TEMP/deleted.z"
+
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
-      - name: Deploy to Github Pages
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

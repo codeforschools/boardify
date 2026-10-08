@@ -1,0 +1,54 @@
+# On a pull request: validate the content, build draft PDFs and a redline packet as an artifact.
+# Copy to .github/workflows/draft-pdfs.yml in a content repo.
+name: Draft PDFs
+
+on:
+  pull_request:
+    paths:
+      - content/**
+
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.number }}
+      TITLE: ${{ github.event.pull_request.title }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - run: uv sync --locked --no-dev
+
+      - name: Validate content
+        run: uv run boardify check
+
+      - name: List changed policy files
+        run: |
+          gh pr view "$PR_NUMBER" --json files \
+            | jq -j '.files[] | select(.changeType != "DELETED" and (.path | endswith(".md"))) | .path + "\u0000"' \
+            > "$RUNNER_TEMP/changed.z"
+
+      - name: Build draft PDFs
+        run: xargs -0 -r uv run boardify pdf < "$RUNNER_TEMP/changed.z"
+
+      - name: Build redlines
+        run: |
+          mkdir -p output
+          gh pr diff "$PR_NUMBER" > output/diff.diff
+          uv run boardify diff
+          uv run boardify redline
+          rm output/diff.*
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: ${{ github.event.pull_request.title || 'draft-pdfs' }}
+          path: output

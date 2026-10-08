@@ -1,48 +1,69 @@
 # boardify
 
-Tooling for policy-manual sites built with a static site generator (Zensical) and a git-backed CMS. It is the engine; the content lives in a separate repository (for example `policy`).
+Tooling for policy-manual sites built with a static site generator ([Zensical](https://zensical.org)) and a git-backed CMS ([Sveltia](https://github.com/sveltia/sveltia-cms)). It is the engine; the content lives in a separate repository, so many organizations can share one tool.
 
-## Content contract
-A content repo has `content/policies/<section>/<code>-<slug>/index.md` (the Policy) and, optionally, `regulation.md` (the Regulation). Frontmatter: `code`, `title`, `kind` (`Policy` or `Regulation`), `updated`, `reference`.
+What it does:
 
-## Commands
-Run from the content repo root; settings come from `[tool.boardify]` in `pyproject.toml` (see `src/boardify/config.py` for defaults).
+- **Validates** a content repo's folder layout and frontmatter (`boardify check`).
+- **Builds PDFs** of each policy and regulation, named from frontmatter, and uploads them to S3.
+- **Builds redlines**: word-level change PDFs from a pull request's diff.
+- **Generates the CMS configuration** from the folders (`boardify cms-config`).
+- **Ships a Zensical theme** that adds the policy header, references and a "Download PDF" link.
 
-```bash
-boardify check                          # validate structure and frontmatter
-boardify pdf PATH[,PATH...] [--upload]  # build PDFs into output/ (S3 upload uses AWS_S3_* env vars)
-boardify delete-pdf --base REV PATH...  # remove PDFs for files deleted since REV
-boardify diff                           # output/diff.diff -> output/diff.json
-boardify redline                        # output/diff.json -> redline PDFs
-```
+## Install
 
-PDFs are named `{code}-{kind}-{title-slug}.pdf` from frontmatter, matching the site's "Download PDF" link.
+Python 3.11+. PDFs use WeasyPrint, which needs Pango installed on the system (see [CONTRIBUTING](CONTRIBUTING.md)).
 
-## Using it from a content repo
 ```toml
-# pyproject.toml
+# pyproject.toml of a content repo
 dependencies = ["boardify"]
+
 [tool.uv.sources]
-boardify = { git = "https://github.com/codeforschools/boardify", tag = "v0.1.0" }
+boardify = { git = "https://github.com/codeforschools/boardify", tag = "v0.2.0" }
 
 [tool.boardify]
 policies_root = "content/policies"
 pdf_prefix = "pdfs"
-logo_url = "https://example.org/logo.png"
+logo_url = "content/assets/images/logo.png"   # an https URL, or a path from the repo root
+pdf_css = "content/assets/brand.css"
 ```
 
+## Commands
+
+Run from the content repo root; settings come from `[tool.boardify]` (defaults in `src/boardify/config.py`).
+
+```bash
+boardify check                          # validate structure and frontmatter
+boardify pdf PATH [PATH...] [--upload]  # build PDFs into output/ (S3 upload needs AWS_S3_BUCKET)
+boardify delete-pdf --base REV PATH...  # remove PDFs for files deleted since REV
+boardify diff                           # output/diff.diff -> output/diff.json
+boardify redline                        # output/diff.json -> redline PDFs
+boardify cms-config [--check]           # generate content/admin/{config.yml,index.html}
+```
+
+`PATH`s may be separate arguments or one comma- or newline-separated argument.
+
+## Documentation
+
+- [Content contract](docs/content-contract.md): folder layout, frontmatter, what `check` enforces, PDF names.
+- [Branding](docs/branding.md): colors, fonts, logo, template overrides; the theme.
+- [CMS](docs/cms.md): `cms-config` and the pinned Sveltia script.
+- [CI, secrets and roles](docs/ci.md): the example workflows, AWS access, code owners.
+
 ## Theme
-The wheel also ships a Zensical theme, `boardify_theme` (extends the built-in theme; shows "code kind" in the nav and adds the Policy header, references and "Download PDF" link). Enable it in the content repo's `zensical.toml`:
 
 ```toml
+# zensical.toml
 [project.theme]
 name = "boardify"
 
 [project.extra]
-# https://s3.<AWS_S3_REGION>.amazonaws.com/<AWS_S3_BUCKET>/<pdf_prefix>
+# https://s3.<region>.amazonaws.com/<bucket>/<pdf_prefix>   (path style: bucket names may contain dots)
 pdf_base_url = "https://s3.us-west-2.amazonaws.com/example.org/pdfs"
 ```
 
-`pdf_base_url` cannot be derived from the `AWS_S3_*` variables at build time: Zensical only passes its own theme keys to templates and `zensical.toml` has no env expansion. Use the path-style form above (bucket names may contain dots).
+`pdf_base_url` cannot be derived from the `AWS_S3_*` variables at build time: Zensical passes only its own theme keys to templates and `zensical.toml` has no environment expansion.
 
-`examples/workflows/` holds the GitHub Actions the original site used. They still reference MkDocs in places and have not yet been converted to reusable workflows. `wiki/` is carried over from the original `board` repo and is not yet generalized.
+## License
+
+BSD 3-Clause.
