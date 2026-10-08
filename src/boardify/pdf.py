@@ -49,7 +49,8 @@ def get_context(filepath, cfg):
     start = body_start_line(raw, data.content)
     context["content"] = annotate_body(data.content, start)
     context["category"] = "Policy"
-    context["filename"] = pdf_name(data.metadata)
+    if {"code", "kind", "title"} <= set(data.metadata):
+        context["filename"] = pdf_name(data.metadata)
     context["logo_url"] = cfg["logo_url"]
     return context
 
