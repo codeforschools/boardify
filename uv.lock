@@ -32,7 +32,7 @@ requires-dist = [
     { name = "mistune", specifier = ">=3" },
     { name = "python-frontmatter", specifier = ">=1.1" },
     { name = "unidiff", specifier = ">=0.7" },
-    { name = "weasyprint", specifier = ">=62" },
+    { name = "weasyprint", specifier = ">=70" },
 ]
 
 [package.metadata.requires-dev]

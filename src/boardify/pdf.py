@@ -1,119 +1,48 @@
-import os
-
 import frontmatter
-from jinja2 import Environment, PackageLoader
 from mistune import html as markdown_html
-from weasyprint import HTML as weasy_html
 
 from .line_numbers import annotate_body, body_start_line
 from .naming import pdf_name
+from .render import add_brand, get_env, write_pdf
 from .s3 import upload_file
 
-
-def get_env():
-    """
-    Set up the Jinja environment for local use
-    """
-    env = Environment(
-        loader=PackageLoader("boardify", "templates"),
-    )
-    return env
-
-
-def get_template(template):
-    """
-    Get the template using the Jinja template loader
-    """
-    env = get_env()
-    template = env.get_template(template)
-    return template
-
-
-def get_html(content):
-    """
-    Get the rendered HTML from the Markdown content specifically
-    """
-    output = markdown_html(content)
-    return output
+REQUIRED = {"code", "kind", "title"}
 
 
 def get_context(filepath, cfg):
     """
-    Get the context using frontmatter parser
+    Template context from a file's frontmatter, with line numbers annotated into the body
     """
-    with open(filepath) as f:
+    with open(filepath, encoding="utf-8") as f:
         raw = f.read()
     data = frontmatter.loads(raw)
     context = data.to_dict()
 
     start = body_start_line(raw, data.content)
     context["content"] = annotate_body(data.content, start)
-    context["category"] = "Policy"
-    if {"code", "kind", "title"} <= set(data.metadata):
+    if REQUIRED <= set(data.metadata):
         context["filename"] = pdf_name(data.metadata)
-    context["logo_url"] = cfg["logo_url"]
-    return context
-
-
-def render_template(template, context):
-    """
-    Render the context into the policy template, returning HTML
-    """
-    template = get_template(
-        template,
-    )
-    output = template.render(
-        context=context,
-    )
-    return output
+    return add_brand(context, cfg)
 
 
 def build_pdf(filepath, cfg, upload=False):
-
-    TEMPLATE_MAP = {
-        "Policy": "policy.html",
-    }
-
-    # Get context; section index pages have no code/kind and get no PDF
     context = get_context(filepath, cfg)
-    if not {"code", "kind", "title"} <= set(context):
-        return
+    # Section index pages have no code/kind and get no PDF
+    if not REQUIRED <= set(context):
+        return None
 
-    # Convert markdown content to HTML
-    try:
-        context["content"] = get_html(context["content"])
-    except TypeError:
-        return
+    context["content"] = markdown_html(context["content"])
+    output = get_env(cfg).get_template("policy.html").render(context=context)
 
-    # Get template based on category
-    template = TEMPLATE_MAP.get(context["category"])
-
-    # Select template based on context
-    output = render_template(
-        template=template,
-        context=context,
-    )
-
-    filename = context["filename"]
-
-    # Dump HTML for debugging
-    # with open(f'output/{filename}.html', 'w') as f:
-    #     f.write(output)
-
-    # Create file
-    os.makedirs(cfg["output_dir"], exist_ok=True)
-    outfile = f"{cfg['output_dir']}/{filename}.pdf"
-
-    weasy_obj = weasy_html(
-        string=output,
-    )
-    weasy_obj.write_pdf(outfile)
+    outfile = f"{cfg['output_dir']}/{context['filename']}.pdf"
+    write_pdf(output, outfile, cfg)
 
     if upload:
-        upload_file(outfile, key=f"{cfg['pdf_prefix']}/{filename}.pdf")
-    return
+        upload_file(outfile, key=f"{cfg['pdf_prefix']}/{context['filename']}.pdf")
+    return outfile
 
 
 def main(filepaths, cfg, upload=False):
     for filepath in filepaths:
         build_pdf(filepath, cfg, upload=upload)
+    return 0

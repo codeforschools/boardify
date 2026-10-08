@@ -16,7 +16,7 @@ dependencies = [
     "mistune>=3",
     "python-frontmatter>=1.1",
     "unidiff>=0.7",
-    "weasyprint>=62",
+    "weasyprint>=70",
 ]
 
 [project.urls]

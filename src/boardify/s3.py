@@ -3,28 +3,35 @@ import os
 import boto3
 
 
+def get_bucket(bucket=None):
+    bucket = bucket or os.environ.get("AWS_S3_BUCKET")
+    if not bucket:
+        raise SystemExit("AWS_S3_BUCKET is not set (the bucket PDFs are uploaded to).")
+    return bucket
+
+
 def get_client():
     """
-    Set up the S3 client using credentials from the environment
+    S3 client. AWS_S3_ACCESS_KEY / AWS_S3_SECRET_KEY are used when both are set;
+    otherwise boto3's default credential chain applies (an OIDC role in CI, an AWS
+    profile locally), so no long-lived keys are required.
     """
-    client = boto3.client(
-        "s3",
-        aws_access_key_id=os.environ["AWS_S3_ACCESS_KEY"],
-        aws_secret_access_key=os.environ["AWS_S3_SECRET_KEY"],
-        region_name=os.environ.get("AWS_S3_REGION"),
-    )
-    return client
+    kwargs = {"region_name": os.environ.get("AWS_S3_REGION") or None}
+    access_key = os.environ.get("AWS_S3_ACCESS_KEY")
+    secret_key = os.environ.get("AWS_S3_SECRET_KEY")
+    if access_key and secret_key:
+        kwargs.update(aws_access_key_id=access_key, aws_secret_access_key=secret_key)
+    return boto3.client("s3", **kwargs)
 
 
 def upload_file(filepath, key=None, bucket=None):
     """
-    Upload a local file to S3, returning the object key it was stored under
+    Upload a local PDF to S3, returning the object key it was stored under
     """
-    bucket = bucket or os.environ["AWS_S3_BUCKET"]
     key = key or filepath.rpartition("/")[2]
-
-    client = get_client()
-    client.upload_file(filepath, bucket, key)
+    get_client().upload_file(
+        filepath, get_bucket(bucket), key, ExtraArgs={"ContentType": "application/pdf"}
+    )
     return key
 
 
@@ -32,8 +39,5 @@ def delete_file(key, bucket=None):
     """
     Delete an object from S3
     """
-    bucket = bucket or os.environ["AWS_S3_BUCKET"]
-
-    client = get_client()
-    client.delete_object(Bucket=bucket, Key=key)
+    get_client().delete_object(Bucket=get_bucket(bucket), Key=key)
     return key

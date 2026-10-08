@@ -7,6 +7,13 @@
     </title>
     <style>
       {% block style %}
+      :root {
+        /* Brand tokens: override these in the pdf_css stylesheet. */
+        --brand-font: Helvetica;
+        --brand-text: #444;
+        --brand-heading: #111;
+      }
+
       @media print {
         * {
           background: transparent !important;
@@ -18,8 +25,8 @@
         }
 
         body {
-          color: #444;
-          font-family: Helvetica;
+          color: var(--brand-text);
+          font-family: var(--brand-font);
           font-size: 14px;
           line-height: 1.2;
           padding: 1em 1em 1em 3.5em;
@@ -112,7 +119,7 @@
         }
 
         h1, h2, h3, h4, h5, h6 {
-          color: #111;
+          color: var(--brand-heading);
           line-height: 125%;
           margin-top: 1.5em;
           font-weight: normal;
@@ -311,6 +318,7 @@
       }
       {% endblock style %}
     </style>
+    {% if context.extra_css %}<style>{{ context.extra_css }}</style>{% endif %}
   </head>
   <body>
     <header>
