@@ -26,7 +26,7 @@ Most of the time, you'll be updating an existing policy.  This is fairly straigh
 
 ### Create
 
-Less frequently you may need to create an entirely new policy that doesn't exist.  In that case, you'll need to click on section where the new policy will live, and then click the button on the top right that says "New".  This will open up a screen where you'll add all of the details on the policy/regulation, including the code number, title, type, references and of course the content itself.  Again, this doesn't make anything official -- it just creates a new draft for everyone to work on.  For more details on the "what do I enter where", be sure to check the [Style Guide](Style-Guide.md).
+Less frequently you may need to create an entirely new policy that doesn't exist.  In that case, you'll need to click on section where the new policy will live, and then click the button on the top right that says "New".  This will open up a screen where you'll add all of the details on the policy/regulation, including the code number, title, type, references and of course the content itself.  Again, this doesn't make anything official -- it just creates a new draft for everyone to work on.  For more details on the "what do I enter where", be sure to check the Style Guide.
 
 ### Delete
 
@@ -66,7 +66,7 @@ The Content refers to the substance of the policy/regulation itself.  This is wh
 
 The first is "Rich Text", which presents the content in the form in which it will be rendered (ie, WYSIWYG) and uses Microsoft Word-style buttons to create headings, bold, italics, lists, etc.  The is the default mode.  If you wish to switch to [Markdown](Markdown-Syntax.md), then click the "M" button on the upper right corner.  Feel free to use the mode with which you're most comfortable, or switch between them.
 
-Regardless of method chosen, the content itself should follow certain conventions to ensure a consistent style.  See the [Style Guide](Style-Guide.md) for details.
+Regardless of method chosen, the content itself should follow certain conventions to ensure a consistent style.  See the Style Guide for details.
 
 ## Saving Changes
 
@@ -83,7 +83,7 @@ Now that you have an overview of the Editing Workflow, move on to [Publishing](P
 >
 > The first step in this process is to `Duplicate` the existing policy, change the Kind from `Policy` to `Regulation`, and then click Save.
 >
-> Next, you should edit the existing policy with new language consistent with the [Style Guide](Style-Guide.md).  If you're not sure what this new language should be, feel free to simply put in "TBD".  Then, click Save.
+> Next, you should edit the existing policy with new language consistent with the Style Guide.  If you're not sure what this new language should be, feel free to simply put in "TBD".  Then, click Save.
 >
 > This process is called a "lift-and-shift", and it results in two files (one Policy and one Regulation) with the same code, and both in Draft state that can then be worked on independently but will eventually be Published together.
 -->

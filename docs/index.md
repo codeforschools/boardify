@@ -9,10 +9,10 @@ Tooling for policy-manual sites: structure checks, PDFs, redlines and a git-back
 - [CI, secrets and roles](ci.md): the example workflows, AWS access, code owners.
 
 ## Using the CMS (editor guides)
-Written from the point of view of one deployment (West Ada's), as a model for your own.
+Written from the point of view of one deployment (West Ada's), as a model for your own. The policy style guide itself belongs to each organization's content repo.
 
 - [Authentication](editors/Authentication.md): logging in.
 - [Editing Workflow](editors/Editing-Workflow.md): create, update and delete policies and regulations.
-- [Style Guide](editors/Style-Guide.md), [Markdown Syntax](editors/Markdown-Syntax.md), [Using Microsoft Word](editors/Using-Microsoft-Word.md).
+- [Markdown Syntax](editors/Markdown-Syntax.md), [Using Microsoft Word](editors/Using-Microsoft-Word.md).
 - [Publishing Workflow](editors/Publishing-Workflow.md) and [Project Management](editors/Project-Management.md).
 - [System Architecture](editors/System-Architecture.md) and [GitHub Backend](editors/Github-Backend.md).

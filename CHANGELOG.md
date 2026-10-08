@@ -9,6 +9,7 @@
 - CLI paths may be separate arguments, commas or newlines.
 - Hardened example workflows; West Ada-specific wiki and workflows moved out.
 - Python 3.11+ (was 3.14+), tests and CI.
+- Documentation site built with Zensical (`docs/`, `zensical.toml`), including the generic editor guides.
 
 ## 0.1.0
 - Initial extraction of the engine from `board`.

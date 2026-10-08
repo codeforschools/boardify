@@ -16,7 +16,6 @@ nav = [
   { "Editor guides" = [
     "editors/Authentication.md",
     "editors/Editing-Workflow.md",
-    "editors/Style-Guide.md",
     "editors/Markdown-Syntax.md",
     "editors/Using-Microsoft-Word.md",
     "editors/Publishing-Workflow.md",

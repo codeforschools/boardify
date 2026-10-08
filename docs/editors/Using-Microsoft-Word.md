@@ -20,7 +20,7 @@ Here are the steps to export a Boardify draft into Microsoft Word.
 
 6. Save it!
 
-From here, do what you need to do in Word, reformatting, rearranging, etc.  Save and share it as normal.  Treat it like any other Word document -- just be sure to follow the conventions found in the [Policy Style Guide](Style-Guide.md).
+From here, do what you need to do in Word, reformatting, rearranging, etc.  Save and share it as normal.  Treat it like any other Word document -- just be sure to follow the conventions found in the Policy Style Guide.
 
 Then, when you are ready to bring it back into Boardify, follow the Import directions below.
 
