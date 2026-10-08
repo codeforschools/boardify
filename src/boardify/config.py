@@ -1,4 +1,4 @@
-"""Organization settings, read from boardify.toml in the working directory."""
+"""Organization settings, read from [tool.boardify] in pyproject.toml in the working directory."""
 import tomllib
 from pathlib import Path
 
@@ -10,9 +10,9 @@ DEFAULTS = {
 }
 
 
-def load(path="boardify.toml"):
+def load(path="pyproject.toml"):
     config = dict(DEFAULTS)
     p = Path(path)
     if p.exists():
-        config.update(tomllib.loads(p.read_text()))
+        config.update(tomllib.loads(p.read_text()).get("tool", {}).get("boardify", {}))
     return config
