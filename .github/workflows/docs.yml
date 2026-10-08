@@ -1,0 +1,39 @@
+# Publishes the documentation site (docs/) to GitHub Pages.
+# One-time setup: repository Settings -> Pages -> Source: GitHub Actions.
+name: Docs
+on:
+  push:
+    branches: [main]
+    paths: [docs/**, zensical.toml, .github/workflows/docs.yml]
+  pull_request:
+    paths: [docs/**, zensical.toml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: docs
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked
+      - run: uv run zensical build
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

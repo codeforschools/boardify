@@ -23,7 +23,7 @@ dependencies = [
 Source = "https://github.com/codeforschools/boardify"
 
 [dependency-groups]
-dev = ["pytest>=8", "pyyaml>=6", "ruff>=0.6"]
+dev = ["pytest>=8", "pyyaml>=6", "ruff>=0.6", "zensical"]
 
 [project.scripts]
 boardify = "boardify.cli:main"

@@ -1,0 +1,37 @@
+# Documentation site for boardify itself (docs/ -> site/). Build: uv run zensical build
+[project]
+site_name = "boardify"
+site_description = "Tooling for policy-manual sites"
+site_url = "https://codeforschools.github.io/boardify/"
+repo_url = "https://github.com/codeforschools/boardify"
+docs_dir = "docs"
+nav = [
+  { "Home" = "index.md" },
+  { "Content repo" = [
+    "content-contract.md",
+    "branding.md",
+    "cms.md",
+    "ci.md",
+  ] },
+  { "Editor guides" = [
+    "editors/Authentication.md",
+    "editors/Editing-Workflow.md",
+    "editors/Style-Guide.md",
+    "editors/Markdown-Syntax.md",
+    "editors/Using-Microsoft-Word.md",
+    "editors/Publishing-Workflow.md",
+    "editors/Project-Management.md",
+    "editors/System-Architecture.md",
+    "editors/Github-Backend.md",
+  ] },
+]
+
+[project.theme]
+variant = "modern"
+
+[project.markdown_extensions.tables]
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.pymdownx.superfences]
+
+[project.plugins.search]

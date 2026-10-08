@@ -4,6 +4,7 @@
 uv sync
 uv run ruff check .
 uv run pytest
+uv run zensical serve   # preview the docs (docs/ -> site/)
 ```
 
 WeasyPrint needs Pango at runtime (`brew install pango` on macOS, `libpango-1.0-0 libpangoft2-1.0-0` on Debian/Ubuntu).

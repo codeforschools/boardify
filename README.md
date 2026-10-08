@@ -45,10 +45,13 @@ boardify cms-config [--check]           # generate content/admin/{config.yml,ind
 
 ## Documentation
 
+Published at <https://codeforschools.github.io/boardify/> (built from `docs/` with Zensical: `uv run zensical serve`).
+
 - [Content contract](docs/content-contract.md): folder layout, frontmatter, what `check` enforces, PDF names.
 - [Branding](docs/branding.md): colors, fonts, logo, template overrides; the theme.
 - [CMS](docs/cms.md): `cms-config` and the pinned Sveltia script.
 - [CI, secrets and roles](docs/ci.md): the example workflows, AWS access, code owners.
+- [Editor guides](docs/editors/): logging in, editing, style, publishing (written from one deployment's point of view).
 
 ## Theme
 
