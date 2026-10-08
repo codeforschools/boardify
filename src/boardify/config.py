@@ -23,7 +23,7 @@ CMS_DEFAULTS = {
     "index_path": "content/admin/index.html",
     "media_folder": "content/assets",
     "public_folder": "/assets",
-    "layout": "sections",  # "sections": a collection per section and kind; "tree": one Policies and one Regulations tree
+    "layout": "section",  # sidebar order: "section" (Policies then Regulations per section), "kind" (all Policies, then all Regulations), "tree" (one nested Policies and one Regulations tree)
 }
 
 

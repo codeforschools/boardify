@@ -12,7 +12,15 @@ base_url = "https://oauth-proxy.example.org/"   # GitHub OAuth proxy
 app_title = "Policy Manager"
 sveltia_version = "0.220.0"        # required: an exact version, never "latest"
 sveltia_integrity = "sha384-..."   # optional but recommended: Subresource Integrity for that version
+layout = "section"                 # sidebar organization, see below
 ```
+
+`layout` sets how the sidebar is organized (Sveltia cannot group collections, so it is only an ordering or a tree):
+
+- `section` (default): flat list ordered by section, each section's Policies followed by its Regulations.
+- `kind`: all Policies by section, then all Regulations by section.
+- `tree`: one nested Policies collection and one nested Regulations collection, each a folder tree of sections.
+  Experimental: new entries may not land in the right section folder.
 
 The admin page holds an authenticated GitHub session, so the script is pinned. To compute the hash:
 

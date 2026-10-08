@@ -1,8 +1,7 @@
 """Generate the Sveltia CMS configuration (admin/config.yml and admin/index.html) from the folder tree.
 
 The tree is the source of truth: one singleton per section index page, a Policies collection per
-section, then (listed after all the Policies) a Regulations collection for every section that has a
-regulation.md. Re-run
+section, each followed by a Regulations collection if the section has a regulation.md. Re-run
 `boardify cms-config` after adding a section or the first regulation in one.
 """
 import json
@@ -126,18 +125,24 @@ def build_config(cfg):
     for s in secs:
         out.append(singleton(f"{s['slug']}_page", f"{s['title']} Page", f"{root.as_posix()}/{s['folder']}/index.md"))
     out.append("collections:\n")
-    if cms["layout"] == "tree":
+    layout = cms["layout"]
+    if layout == "tree":
         out.append(collection(cfg, None, "Policy"))
         if any(s["regulations"] for s in secs):
             out.append(collection(cfg, None, "Regulation"))
-    elif cms["layout"] == "sections":
+    elif layout == "section":
+        for s in secs:
+            out.append(collection(cfg, s, "Policy"))
+            if s["regulations"]:
+                out.append(collection(cfg, s, "Regulation"))
+    elif layout == "kind":
         for s in secs:
             out.append(collection(cfg, s, "Policy"))
         for s in secs:
             if s["regulations"]:
                 out.append(collection(cfg, s, "Regulation"))
     else:
-        raise SystemExit('[tool.boardify.cms] layout must be "sections" or "tree"')
+        raise SystemExit('[tool.boardify.cms] layout must be "section", "kind" or "tree"')
     return "".join(x if x.endswith("\n") else x + "\n" for x in out)
 
 
