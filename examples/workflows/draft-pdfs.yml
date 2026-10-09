@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read   # gh pr view / gh pr diff use GraphQL
 
 jobs:
   draft:
@@ -48,7 +49,14 @@ jobs:
           uv run boardify redline
           rm output/diff.*
 
+      # Artifact names cannot contain : " < > | * ? \ / or line breaks, which PR titles often do.
+      - name: Name the artifact after the PR title
+        id: artifact
+        run: |
+          name=$(printf '%s' "$TITLE" | tr -c 'A-Za-z0-9._ -' '-' | cut -c1-100)
+          echo "name=${name:-draft-pdfs}" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ github.event.pull_request.title || 'draft-pdfs' }}
+          name: ${{ steps.artifact.outputs.name }}
           path: output
