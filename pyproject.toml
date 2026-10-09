@@ -1,6 +1,6 @@
 [project]
 name = "boardify"
-version = "0.4.0"
+version = "0.4.1"
 description = "Tooling for policy-manual sites: structure checks, PDFs and redlines."
 readme = "README.md"
 license = { file = "LICENSE" }

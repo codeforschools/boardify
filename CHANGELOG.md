@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.1
 - `examples/workflows/draft-pdfs.yml`: grant `pull-requests: read` (`gh pr diff` failed with "Resource not accessible by integration" under `contents: read` alone) and sanitize the PR title used as the artifact name (a colon, slash or quote in a title failed the upload).
 
 ## 0.2.0
