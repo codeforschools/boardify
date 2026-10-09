@@ -38,7 +38,7 @@ def build_pdf(filepath, cfg, upload=False):
     write_pdf(output, outfile, cfg)
 
     if upload:
-        upload_file(outfile, key=f"{cfg['pdf_prefix']}/{context['filename']}.pdf")
+        upload_file(cfg, outfile, key=f"{cfg['pdf_prefix']}/{context['filename']}.pdf")
     return outfile
 
 

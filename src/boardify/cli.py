@@ -17,7 +17,7 @@ def main(argv=None):
 
     p = sub.add_parser("pdf", help="build PDFs for the given policy files")
     p.add_argument("paths", nargs="*", help="files, space-, comma- or newline-separated")
-    p.add_argument("--upload", action="store_true", help="upload to S3 (AWS_S3_* env vars)")
+    p.add_argument("--upload", action="store_true", help="upload to S3 (pdf_bucket, pdf_region)")
 
     p = sub.add_parser("delete-pdf", help="delete the S3 PDFs for the given removed files")
     p.add_argument("paths", nargs="*", help="files, space-, comma- or newline-separated")

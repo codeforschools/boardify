@@ -51,14 +51,17 @@ jobs:
       - name: Validate content
         run: uv run boardify check
 
-      # Optional: authenticate to AWS with a role instead of long-lived keys. Set the
-      # repository variable AWS_ROLE_ARN (and AWS_S3_REGION as a secret/variable) to use it.
+      # PDFs upload through an OIDC role: set the repository variable AWS_ROLE_ARN.
+      # The region comes from pdf_region in [tool.boardify], so it is not repeated here.
+      - name: Read AWS region from config
+        id: region
+        run: python3 -c "import tomllib; print('region=' + tomllib.load(open('pyproject.toml','rb'))['tool']['boardify']['pdf_region'])" >> "$GITHUB_OUTPUT"
+
       - name: Assume AWS role
-        if: ${{ vars.AWS_ROLE_ARN != '' }}
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_S3_REGION }}
+          aws-region: ${{ steps.region.outputs.region }}
 
       # Build the site first: if it fails, nothing has been published to S3 yet.
       - name: Build site
@@ -76,19 +79,9 @@ jobs:
           fi
 
       - name: Build and upload policy PDFs
-        env:
-          AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
-          AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
-          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
         run: xargs -0 -r uv run boardify pdf --upload < "$RUNNER_TEMP/changed.z"
 
       - name: Delete PDFs of removed policies
-        env:
-          AWS_S3_ACCESS_KEY: ${{ secrets.AWS_S3_ACCESS_KEY }}
-          AWS_S3_SECRET_KEY: ${{ secrets.AWS_S3_SECRET_KEY }}
-          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
         run: xargs -0 -r uv run boardify delete-pdf --base "$BEFORE" < "$RUNNER_TEMP/deleted.z"
 
       - uses: actions/upload-pages-artifact@v5

@@ -43,16 +43,16 @@ def test_template_directory_overrides_bundled(tmp_path):
     assert env.get_template("policy.html").render(context={"title": "T"}) == "custom T"
 
 
-def test_s3_requires_bucket(monkeypatch):
-    monkeypatch.delenv("AWS_S3_BUCKET", raising=False)
+def test_s3_requires_bucket():
     with pytest.raises(SystemExit):
-        s3.get_bucket()
+        s3.get_bucket({})
+    assert s3.get_bucket({"pdf_bucket": "example.org"}) == "example.org"
 
 
-def test_s3_uses_default_credential_chain_without_keys(monkeypatch):
+def test_s3_uses_configured_region_and_default_credential_chain(monkeypatch):
     seen = {}
-    monkeypatch.delenv("AWS_S3_ACCESS_KEY", raising=False)
-    monkeypatch.delenv("AWS_S3_SECRET_KEY", raising=False)
+    monkeypatch.setenv("AWS_S3_ACCESS_KEY", "ignored")
+    monkeypatch.setenv("AWS_S3_SECRET_KEY", "ignored")
     monkeypatch.setattr(s3.boto3, "client", lambda name, **kw: seen.update(kw))
-    s3.get_client()
-    assert "aws_access_key_id" not in seen
+    s3.get_client({"pdf_region": "us-west-2"})
+    assert seen == {"region_name": "us-west-2"}

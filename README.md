@@ -23,6 +23,8 @@ boardify = { git = "https://github.com/codeforschools/boardify", tag = "v0.2.0" 
 
 [tool.boardify]
 policies_root = "content/policies"
+pdf_bucket = "example.org"
+pdf_region = "us-west-2"
 pdf_prefix = "pdfs"
 logo_url = "content/assets/images/logo.png"   # an https URL, or a path from the repo root
 pdf_css = "content/assets/brand.css"
@@ -34,7 +36,7 @@ Run from the content repo root; settings come from `[tool.boardify]` (defaults i
 
 ```bash
 boardify check                          # validate structure and frontmatter
-boardify pdf PATH [PATH...] [--upload]  # build PDFs into output/ (S3 upload needs AWS_S3_BUCKET)
+boardify pdf PATH [PATH...] [--upload]  # build PDFs into output/ (S3 upload needs pdf_bucket, pdf_region)
 boardify delete-pdf --base REV PATH...  # remove PDFs for files deleted since REV
 boardify diff                           # output/diff.diff -> output/diff.json
 boardify redline                        # output/diff.json -> redline PDFs
@@ -65,7 +67,7 @@ name = "boardify"
 pdf_base_url = "https://s3.us-west-2.amazonaws.com/example.org/pdfs"
 ```
 
-`pdf_base_url` cannot be derived from the `AWS_S3_*` variables at build time: Zensical passes only its own theme keys to templates and `zensical.toml` has no environment expansion.
+`pdf_base_url` cannot be derived from `pdf_bucket`/`pdf_region` in `[tool.boardify]` at build time: Zensical passes only its own theme keys to templates, so keep the two in step.
 
 ## License
 

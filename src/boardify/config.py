@@ -4,7 +4,9 @@ from pathlib import Path
 
 DEFAULTS = {
     "policies_root": "content/policies",  # where <section>/<code>-<slug>/ folders live
-    "pdf_prefix": "pdfs",  # S3 key prefix (the bucket and credentials come from AWS_S3_* env vars)
+    "pdf_bucket": "",  # S3 bucket PDFs are uploaded to (required for `pdf --upload`)
+    "pdf_region": "",  # that bucket's AWS region
+    "pdf_prefix": "pdfs",  # S3 key prefix
     "output_dir": "output",
     "logo_url": "",  # shown on generated PDFs: an https URL, or a path relative to the repo root
     "pdf_css": "",  # optional stylesheet appended to every PDF (the brand manager's file)

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.2
+- S3 bucket and region are now `pdf_bucket` and `pdf_region` in `[tool.boardify]` (they are public, not secrets). The `AWS_S3_BUCKET`, `AWS_S3_REGION`, `AWS_S3_ACCESS_KEY` and `AWS_S3_SECRET_KEY` environment variables are no longer read; credentials come only from boto3's default chain (the OIDC role in CI). Example `deploy.yml` reads the region from config.
+
 ## 0.4.1
 - `examples/workflows/draft-pdfs.yml`: grant `pull-requests: read` (`gh pr diff` failed with "Resource not accessible by integration" under `contents: read` alone) and sanitize the PR title used as the artifact name (a colon, slash or quote in a title failed the upload).
 

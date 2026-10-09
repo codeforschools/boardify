@@ -1,43 +1,35 @@
-import os
-
 import boto3
 
 
-def get_bucket(bucket=None):
-    bucket = bucket or os.environ.get("AWS_S3_BUCKET")
+def get_bucket(cfg):
+    bucket = cfg.get("pdf_bucket")
     if not bucket:
-        raise SystemExit("AWS_S3_BUCKET is not set (the bucket PDFs are uploaded to).")
+        raise SystemExit("pdf_bucket is not set in [tool.boardify] (the bucket PDFs are uploaded to).")
     return bucket
 
 
-def get_client():
+def get_client(cfg):
     """
-    S3 client. AWS_S3_ACCESS_KEY / AWS_S3_SECRET_KEY are used when both are set;
-    otherwise boto3's default credential chain applies (an OIDC role in CI, an AWS
-    profile locally), so no long-lived keys are required.
+    S3 client in the configured region. Credentials come from boto3's default chain
+    (an OIDC role in CI, an AWS profile locally); no long-lived keys are read.
     """
-    kwargs = {"region_name": os.environ.get("AWS_S3_REGION") or None}
-    access_key = os.environ.get("AWS_S3_ACCESS_KEY")
-    secret_key = os.environ.get("AWS_S3_SECRET_KEY")
-    if access_key and secret_key:
-        kwargs.update(aws_access_key_id=access_key, aws_secret_access_key=secret_key)
-    return boto3.client("s3", **kwargs)
+    return boto3.client("s3", region_name=cfg.get("pdf_region") or None)
 
 
-def upload_file(filepath, key=None, bucket=None):
+def upload_file(cfg, filepath, key=None):
     """
     Upload a local PDF to S3, returning the object key it was stored under
     """
     key = key or filepath.rpartition("/")[2]
-    get_client().upload_file(
-        filepath, get_bucket(bucket), key, ExtraArgs={"ContentType": "application/pdf"}
+    get_client(cfg).upload_file(
+        filepath, get_bucket(cfg), key, ExtraArgs={"ContentType": "application/pdf"}
     )
     return key
 
 
-def delete_file(key, bucket=None):
+def delete_file(cfg, key):
     """
     Delete an object from S3
     """
-    get_client().delete_object(Bucket=get_bucket(bucket), Key=key)
+    get_client(cfg).delete_object(Bucket=get_bucket(cfg), Key=key)
     return key

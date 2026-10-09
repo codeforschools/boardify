@@ -4,7 +4,7 @@ Boardify is the engine for policy-manual sites. It contains no policy content; c
 
 - Source: `src/boardify/`; CLI entry `cli.py`. Bundled PDF templates in `src/boardify/templates/` (loaded with `PackageLoader`).
 - The frontmatter schema and folder layout (see README) are the contract with content repos; change them deliberately and keep `check.py` in sync.
-- S3 settings come from `AWS_S3_*` environment variables, never from config; without a key pair boto3's default credential chain applies (OIDC role in CI).
+- S3 bucket and region are `pdf_bucket`/`pdf_region` in config (they are public, not secrets); credentials come only from boto3's default chain (OIDC role in CI), never from key-pair env vars.
 - Package manager is uv. `uv run ruff check .` and `uv run pytest` (CI runs both on Python 3.11–3.14); also try the CLI against a content repo (`uv run --with-editable ../boardify boardify check` there).
 - Documentation for users is in `docs/` (contract, branding, CMS, CI, plus `docs/editors/`, the editor guides), published with Zensical from `zensical.toml` (`uv run zensical build`; `.github/workflows/docs.yml`); keep it in step with `check.py`, `config.py` and the workflows in `examples/`.
 

@@ -11,17 +11,17 @@ status check in branch protection.
 
 ## AWS access
 
-PDF uploads need `AWS_S3_BUCKET` and `AWS_S3_REGION`. Credentials, in order of preference:
+PDF uploads need `pdf_bucket` and `pdf_region` in `[tool.boardify]` (public values, so they live in the repo, not in
+secrets) and an IAM role, assumed via GitHub OIDC. boardify reads no key pairs: it uses boto3's default credential chain.
 
-1. **An IAM role via GitHub OIDC.** Set the repository variable `AWS_ROLE_ARN`; `deploy.yml` assumes it. boardify
-   then uses boto3's default credential chain. Delete the key-pair secrets once the role works: while
-   `AWS_S3_ACCESS_KEY`/`AWS_S3_SECRET_KEY` are set, boardify uses them instead of the role.
-   The role's trust policy must match the token's `sub` claim. The deploy job uses the `github-pages` environment, so
-   `sub` is `repo:OWNER/REPO:environment:github-pages` by default, but repositories using GitHub's immutable subject
-   (check `gh api repos/OWNER/REPO/actions/oidc/customization/sub`) get `repo:OWNER@ID/REPO@ID:environment:github-pages`.
-   An "Not authorized to perform sts:AssumeRoleWithWebIdentity" error means they differ.
-2. A key pair in `AWS_S3_ACCESS_KEY` / `AWS_S3_SECRET_KEY`. Scope the IAM user to `s3:PutObject` and
-   `s3:DeleteObject` on `arn:aws:s3:::<bucket>/<pdf_prefix>/*`.
+Set the repository variable `AWS_ROLE_ARN` (an ARN is not secret); `deploy.yml` assumes it in the region from config.
+The role's trust policy must match the token's `sub` claim. The deploy job uses the `github-pages` environment, so
+`sub` is `repo:OWNER/REPO:environment:github-pages` by default, but repositories using GitHub's immutable subject
+(check `gh api repos/OWNER/REPO/actions/oidc/customization/sub`) get `repo:OWNER@ID/REPO@ID:environment:github-pages`.
+An "Not authorized to perform sts:AssumeRoleWithWebIdentity" error means they differ. Scope the role to `s3:PutObject`
+and `s3:DeleteObject` on `arn:aws:s3:::<bucket>/<pdf_prefix>/*`.
+
+Local uploads are optional; they use your own AWS profile.
 
 ## Who owns what
 
