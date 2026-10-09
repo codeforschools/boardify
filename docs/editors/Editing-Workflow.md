@@ -4,7 +4,7 @@
 
 Access the Content Management System (CMS) at the following link:
 
-[https://board.westada.org/admin](https://board.westada.org/admin)
+`https://<your-site>/admin`
 
 If you are not immediately sent to the Boardify home page, see [Authentication](Authentication.md).
 

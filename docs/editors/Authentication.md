@@ -2,7 +2,7 @@
 
 Access the Content Management System (CMS) at the following link:
 
-[https://board.westada.org/admin](https://board.westada.org/admin)
+`https://<your-site>/admin`
 
 If you need to login, the system will show a "Login to GitHub" button.
 

@@ -13,7 +13,7 @@
 - `cms-config` generates the Sveltia CMS configuration from the content folders.
 - S3 falls back to boto3's default credential chain (OIDC roles, profiles); PDFs upload as `application/pdf`.
 - CLI paths may be separate arguments, commas or newlines.
-- Hardened example workflows; West Ada-specific wiki and workflows moved out.
+- Hardened example workflows; deployment-specific wiki and workflows moved out.
 - Python 3.11+ (was 3.14+), tests and CI.
 - Documentation site built with Zensical (`docs/`, `zensical.toml`), including the generic editor guides.
 

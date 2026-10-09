@@ -4,7 +4,7 @@ Project Management takes place using the same system that powers the version con
 
 The project page can be accessed here:
 
-https://github.com/orgs/westada/projects/1
+`https://github.com/orgs/<your-org>/projects/<n>`
 
 This details the overall state of each proposed change.
 

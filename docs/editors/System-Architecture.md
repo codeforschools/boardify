@@ -39,7 +39,7 @@ When we make duplicates of Word files and then send those edits via email with o
 
 In contrast, GitHub was designed specifically to track and manage changes in distributed systems.  And while GitHub can track all sorts of files (including PDFs, Word documents, Images, etc.) it works best with plain text in general, and knows how to format Markdown specifically.  This is why using Markdown is important; it allows access to this suite of open-source and widely available tools that otherwise are inaccessible to proprietary software approaches like Word or Simbli.
 
-The West Ada School District has a specific GitHub organization called "WestAda", and all the files related to this app are kept in a repository called "Board".
+Your organization has a GitHub organization, and all the files related to this app are kept in a content repository there.
 
 
 ### Zensical
