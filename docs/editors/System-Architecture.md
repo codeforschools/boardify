@@ -8,8 +8,8 @@ Markdown is a **syntax**.  It is a convention for writing files in plain-text th
 ## [Github](https://www.github.com)
 Github is a cloud-based service that stores and manages files under version control.  It provides a number of features for editing, tracking changes, and project management as well as hosting of the website itself.
 
-## [MkDocs](https://www.mkdocs.org)
-MkDocs is Static Site Generator, or SSG.  It takes files that are written in the Markdown syntax and builds them into HTML so that they can become a website on the internet.
+## [Zensical](https://zensical.org)
+Zensical is Static Site Generator, or SSG.  It takes files that are written in the Markdown syntax and builds them into HTML so that they can become a website on the internet.
 
 ## [Sveltia](https://sveltiacms.app)
 Sveltia is a Content Management System, or CMS.  This provides a private interface designed for internal use that allows content creators to write and manage files that use familiar tools, saving the output as Markdown automatically.
@@ -42,13 +42,13 @@ In contrast, GitHub was designed specifically to track and manage changes in dis
 The West Ada School District has a specific GitHub organization called "WestAda", and all the files related to this app are kept in a repository called "Board".
 
 
-### MkDocs
+### Zensical
 
-MkDocs is an open-source Static-Site Generator, or SSG.  This is a tool that takes the plain-text files written in Markdown syntax and converts them into HTML, or the language of websites.  These converted HTML files can then be uploaded to the internet where they can be served to the public at large.  
+Zensical is an open-source Static-Site Generator, or SSG.  This is a tool that takes the plain-text files written in Markdown syntax and converts them into HTML, or the language of websites.  These converted HTML files can then be uploaded to the internet where they can be served to the public at large.  
 
-As the name might imply, MkDocs is tailored towards documentation, which is the closest proxy to our policies that I can envision.  It provides a clean, easy-to-understand interface and allows for rapid searching and easy formatting.  But there are others freely available should a different tool prove more useful.
+Zensical is tailored towards documentation, which is the closest proxy to our policies that I can envision.  It provides a clean, easy-to-understand interface and allows for rapid searching and easy formatting.  But there are others freely available should a different tool prove more useful.
 
-In addition to creating HTML, MkDocs also does some heavy-lifting like site-security, searching, internationalization, and accessibility.  MkDocs specifically adheres to the [Web Content Accessibility Guidelines](https://en.wikipedia.org/wiki/Web_Content_Accessibility_Guidelines) Version 2, standard AA -- the standard to which public school district websites are held.
+In addition to creating HTML, Zensical also does some heavy-lifting like site-security, searching, internationalization, and accessibility.  Zensical specifically adheres to the [Web Content Accessibility Guidelines](https://en.wikipedia.org/wiki/Web_Content_Accessibility_Guidelines) Version 2, standard AA -- the standard to which public school district websites are held.
 
 ### Sveltia
 
@@ -70,6 +70,6 @@ Most of these details are hidden from the Decap CMS front-end, but everything is
 
 ## Summary
 
-With these four tools (Markdown, GitHub, MkDocs and Sveltia) we can replace all our current functionality using a better, more comprehensive workflow, include rich history, and do more with the resulting content than we currently do.  It will require some changes in how we write the policies and think about the flow, but overall will be in a much better position for ourselves, the administration and our patrons.
+With these four tools (Markdown, GitHub, Zensical and Sveltia) we can replace all our current functionality using a better, more comprehensive workflow, include rich history, and do more with the resulting content than we currently do.  It will require some changes in how we write the policies and think about the flow, but overall will be in a much better position for ourselves, the administration and our patrons.
 
 Oh, and did I mention all of these tools are free?  :-)
