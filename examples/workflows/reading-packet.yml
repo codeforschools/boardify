@@ -1,0 +1,65 @@
+# On demand: collect the Draft PDFs artifacts of every open pull request labelled for a Board reading
+# into one artifact, grouped by label. Copy to .github/workflows/reading-packet.yml in a content repo.
+# It reuses the artifacts the Draft PDFs workflow already uploaded (it does not rebuild anything), so
+# a pull request without a Draft PDFs run on its current head commit is listed as missing.
+name: Reading packet
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read   # gh run list / gh run download
+
+concurrency:
+  group: reading-packet
+  cancel-in-progress: true
+
+jobs:
+  packet:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      # Labels to collect, highest first. A pull request with several is filed under the first match.
+      LABELS: '["Third Reading", "Second Reading", "First Reading", "Consent"]'
+    steps:
+      - name: Collect the Draft PDFs artifacts
+        run: |
+          mkdir packet
+          gh pr list --state open --limit 200 --json number,title,headRefName,headRefOid,labels > "$RUNNER_TEMP/prs.json"
+          jq -r --argjson order "$LABELS" '
+            .[] | . as $pr
+            | ([$order[] | select(. as $l | $pr.labels | map(.name) | index($l))] | .[0]) as $label
+            | select($label)
+            | [.number, $label, .headRefName, .headRefOid, .title] | @tsv
+          ' "$RUNNER_TEMP/prs.json" > "$RUNNER_TEMP/selected.tsv"
+
+          {
+            echo "## Reading packet"
+            echo
+            echo "| PR | Label | Result |"
+            echo "| --- | --- | --- |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          while IFS=$'\t' read -r number label branch sha title; do
+            # PR titles hold characters that are not safe in a path.
+            name=$(printf '%s' "$number $title" | tr -c 'A-Za-z0-9._ -' '-' | cut -c1-100)
+            run=$(gh run list --workflow "Draft PDFs" --branch "$branch" --commit "$sha" --limit 1 \
+              --json databaseId --jq '.[0].databaseId // empty')
+            if [ -z "$run" ]; then
+              result="missing: no Draft PDFs run on the current head commit"
+            elif gh run download "$run" -D "packet/$label/$name"; then
+              result="included (run $run)"
+            else
+              result="missing: run $run has no artifact (expired?)"
+            fi
+            echo "| #$number | $label | $result |" >> "$GITHUB_STEP_SUMMARY"
+          done < "$RUNNER_TEMP/selected.tsv"
+
+      - uses: actions/upload-artifact@v6
+        if: hashFiles('packet/**') != ''
+        with:
+          name: reading-packet
+          path: packet

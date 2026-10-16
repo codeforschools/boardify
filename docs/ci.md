@@ -1,9 +1,10 @@
 # CI, secrets and roles
 
-`examples/workflows/` has the two workflows a content repo needs:
+`examples/workflows/` has the two workflows a content repo needs, plus an optional third:
 
 - `draft-pdfs.yml` — on a pull request: `boardify check`, draft PDFs and redlines as an artifact. The PDFs are built and uploaded even when `check` fails (for example a Regulation PR whose Policy has not merged); the job still ends red.
 - `deploy.yml` — on `main`: `boardify check`, build the site, upload changed PDFs, delete removed ones, deploy Pages.
+- `reading-packet.yml` (optional) — run on demand: collects the Draft PDFs artifacts of every open pull request labelled First Reading, Second Reading, Third Reading or Consent into one `reading-packet` artifact, grouped by label. It reuses the artifacts `draft-pdfs.yml` already uploaded, so a pull request whose current head commit has no Draft PDFs run is listed as missing in the job summary. Edit the `LABELS` list for your own labels.
 
 Both pass file names through NUL-separated files and `xargs -0`, never through `${{ }}` interpolation into shell,
 so a hostile file name cannot run commands. Keep it that way when editing them. Make the `check` job a required

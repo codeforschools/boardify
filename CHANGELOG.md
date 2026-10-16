@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.5
+- New optional `examples/workflows/reading-packet.yml`: on demand, gathers the Draft PDFs artifacts of open pull requests labelled First/Second/Third Reading or Consent into one artifact grouped by label.
+
 ## 0.4.4
 - `examples/workflows/draft-pdfs.yml`: build and upload the draft PDFs and redlines even when `boardify check` fails (a Regulation PR fails until its Policy merges); the job still fails, via a last step.
 
