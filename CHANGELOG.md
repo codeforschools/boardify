@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.3
+- `cms-config`: commit messages (and so PR titles) name the kind, e.g. `Create Policy 0731-10-capital-improvement-donations` instead of `Create 0731-10-capital-improvement-donations`.
+
 ## 0.4.2
 - S3 bucket and region are now `pdf_bucket` and `pdf_region` in `[tool.boardify]` (they are public, not secrets). The `AWS_S3_BUCKET`, `AWS_S3_REGION`, `AWS_S3_ACCESS_KEY` and `AWS_S3_SECRET_KEY` environment variables are no longer read; credentials come only from boto3's default chain (the OIDC role in CI). Example `deploy.yml` reads the region from config.
 

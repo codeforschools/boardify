@@ -110,7 +110,8 @@ def build_config(cfg):
         "# [tool.boardify.cms] in pyproject.toml, not this file.\n",
         (f"backend:\n  name: github\n  repo: {q(cms['repo'])}\n  branch: {q(cms['branch'])}\n"
         f"  base_url: {q(cms['base_url'])}\n  commit_messages:\n"
-        "    create: Create {{slug}}\n    update: Update {{slug}}\n    delete: Delete {{slug}}\n"
+        "    create: Create {{collection}} {{slug}}\n    update: Update {{collection}} {{slug}}\n"
+        "    delete: Delete {{collection}} {{slug}}\n"
         "    uploadMedia: Upload {{path}}\n    deleteMedia: Delete {{path}}\n"
         "  cms_label_prefix: boardify/\n"),
         (f"logo:\n  src: {q(cms['logo'])}\napp_title: {q(cms['app_title'])}\n"
