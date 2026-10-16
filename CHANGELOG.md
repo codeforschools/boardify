@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.4
+- `examples/workflows/draft-pdfs.yml`: build and upload the draft PDFs and redlines even when `boardify check` fails (a Regulation PR fails until its Policy merges); the job still fails, via a last step.
+
 ## 0.4.3
 - `cms-config`: commit messages (and so PR titles) name the kind, e.g. `Create Policy 0731-10-capital-improvement-donations` instead of `Create 0731-10-capital-improvement-donations`.
 

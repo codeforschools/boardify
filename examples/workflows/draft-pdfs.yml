@@ -29,7 +29,11 @@ jobs:
 
       - run: uv sync --locked --no-dev
 
+      # Validation must not stop the draft PDFs: a Regulation PR fails `boardify check` until its
+      # Policy PR merges, but reviewers still need its PDF. The failure is reported by the last step.
       - name: Validate content
+        id: validate
+        continue-on-error: true
         run: uv run boardify check
 
       - name: List changed policy files
@@ -60,3 +64,9 @@ jobs:
         with:
           name: ${{ steps.artifact.outputs.name }}
           path: output
+
+      - name: Fail the check if validation failed
+        if: steps.validate.outcome == 'failure'
+        run: |
+          echo "::error::Validation failed (see the 'Validate content' step). The draft PDFs above were still built and uploaded."
+          exit 1

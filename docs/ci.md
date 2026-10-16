@@ -2,7 +2,7 @@
 
 `examples/workflows/` has the two workflows a content repo needs:
 
-- `draft-pdfs.yml` — on a pull request: `boardify check`, draft PDFs and redlines as an artifact.
+- `draft-pdfs.yml` — on a pull request: `boardify check`, draft PDFs and redlines as an artifact. The PDFs are built and uploaded even when `check` fails (for example a Regulation PR whose Policy has not merged); the job still ends red.
 - `deploy.yml` — on `main`: `boardify check`, build the site, upload changed PDFs, delete removed ones, deploy Pages.
 
 Both pass file names through NUL-separated files and `xargs -0`, never through `${{ }}` interpolation into shell,
