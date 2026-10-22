@@ -1,9 +1,11 @@
 # On demand: change the title of the policy a work-in-progress branch is changing. In "Use workflow from"
 # pick that branch (it must already contain this file, so update it from main first) and enter the new title.
 # It updates the Policy and its Regulation (their titles must stay identical), renames the folder to
-# <code>-<new-title-slug> with git mv (so the old URL stops working), runs `boardify check`, and commits
+# <code>-<new-title-slug> with git mv (so the old URL stops working), checks the title and the CMS config, and commits
 # the change to that branch, so the branch's open pull request picks it up.
 # The policy is the one the branch changes against main; it stops if that is not exactly one policy.
+# A Policy and its Regulation on separate branches (the CMS opens one pull request each) need one run
+# per branch with the same title; both end up in the same renamed folder.
 # A push made with the default token does not start other workflows: close and reopen the pull
 # request once to re-run Draft PDFs and the trustee sign-off gate.
 # For a policy already on main, the deploy replaces the old-title PDF in S3 once the change is merged.
@@ -63,11 +65,15 @@ jobs:
           new = " ".join(os.environ["NEW_TITLE"].split())
           if not new:
               sys.exit("The new title is empty")
+          from boardify.naming import title_is_safe
+          if not title_is_safe(new):
+              sys.exit(f"The title has characters that are unsafe in a PDF name or URL: {new!r}")
 
           files = sorted(glob.glob(f"content/policies/*/{code}-*/index.md")
                          + glob.glob(f"content/policies/*/{code}-*/regulation.md"))
-          if not any(f.endswith("/index.md") for f in files):
-              sys.exit(f"No policy with code {code}")
+          # A branch may hold only the Policy or only the Regulation (the CMS opens one pull request each).
+          if not files:
+              sys.exit(f"No policy or regulation with code {code}")
 
           # Plain YAML when safe, otherwise a double-quoted scalar (JSON strings are valid YAML).
           value = new if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 ,()._/-]*", new) else json.dumps(new)
@@ -83,13 +89,12 @@ jobs:
               open(path, "w", encoding="utf-8").write(f"---\n{head}\n---\n" + text[m.end():])
               print("updated", path)
 
-          if old == new:
-              sys.exit(f"{code} is already titled '{new}'")
-
           # The folder is <code>-<slug>: move it so the path follows the title.
           slug = re.sub(r"[^a-z0-9]+", "-", new.lower()).strip("-")
           folder = os.path.dirname(files[0])
           target = os.path.join(os.path.dirname(folder), f"{code}-{slug}")
+          if old == new and target == folder:
+              sys.exit(f"{code} is already titled '{new}' and in {folder}")
           if target != folder:
               if os.path.exists(target):
                   sys.exit(f"{target} already exists")
@@ -99,10 +104,10 @@ jobs:
               out.write(f"code={code}\n")
           PY
 
+      # Not `boardify check`: a branch holding only a Regulation fails it until its Policy merges. The title
+      # is checked above, and the pull request's Draft PDFs run does the full check.
       - name: Validate
-        run: |
-          uv run boardify check
-          uv run boardify cms-config --check
+        run: uv run boardify cms-config --check
 
       - name: Commit to the branch
         env:

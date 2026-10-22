@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.9
+- `examples/workflows/rename-policy.yml`: works on a branch that holds only the Policy or only the Regulation (the CMS opens one pull request each; run it once per branch with the same title); no longer fails when the title is already new but the folder still has the old slug; checks title safety itself instead of `boardify check`, which fails on a Regulation without its Policy.
+
 ## 0.4.8
 - `examples/workflows/rename-policy.yml`: the only input is the new title. Run it from the work-in-progress branch ("Use workflow from"); the policy is the one that branch changes against the default branch (it stops unless exactly one).
 
