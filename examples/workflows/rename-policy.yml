@@ -1,0 +1,102 @@
+# On demand: change the title of one policy that is still a work in progress on a branch. Run it from
+# main (the workflow file lives there), enter the branch, the policy code (####-##) and the new title.
+# It updates the Policy and its Regulation (their titles must stay identical), runs `boardify check`,
+# and commits the change to that branch, so the branch's open pull request picks it up.
+# A push made with the default token does not start other workflows: close and reopen the pull
+# request once to re-run Draft PDFs and the trustee sign-off gate.
+# For a policy already on main, the deploy replaces the old-title PDF in S3 once the change is merged.
+name: Rename policy
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch holding the policy (its open pull request is updated)
+        required: true
+        type: string
+      code:
+        description: Policy code, e.g. 0403-50
+        required: true
+        type: string
+      title:
+        description: New title
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rename-policy-${{ inputs.branch }}
+  cancel-in-progress: false
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    env:
+      # Inputs are data, never interpolated into shell.
+      BRANCH: ${{ inputs.branch }}
+      CODE: ${{ inputs.code }}
+      NEW_TITLE: ${{ inputs.title }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
+
+      - name: Change the title
+        id: rename
+        run: |
+          uv run python - <<'PY'
+          import glob, json, os, re, sys
+
+          code = os.environ["CODE"].strip()
+          new = " ".join(os.environ["NEW_TITLE"].split())
+          if not re.fullmatch(r"\d{4}-\d{2}", code):
+              sys.exit(f"'{code}' is not a policy code (####-##)")
+          if not new:
+              sys.exit("The new title is empty")
+
+          files = sorted(glob.glob(f"content/policies/*/{code}-*/index.md")
+                         + glob.glob(f"content/policies/*/{code}-*/regulation.md"))
+          if not any(f.endswith("/index.md") for f in files):
+              sys.exit(f"No policy with code {code}")
+
+          # Plain YAML when safe, otherwise a double-quoted scalar (JSON strings are valid YAML).
+          value = new if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 ,()._/-]*", new) else json.dumps(new)
+          old = None
+          for path in files:
+              text = open(path, encoding="utf-8").read()
+              m = re.match(r"---\n(.*?)\n---\n", text, re.S)
+              head = m.group(1)
+              t = re.search(r"^title:[ \t]*(.*)$", head, re.M)
+              if old is None:
+                  old = t.group(1).strip().strip("\"'")
+              head = head[:t.start()] + f"title: {value}" + head[t.end():]
+              open(path, "w", encoding="utf-8").write(f"---\n{head}\n---\n" + text[m.end():])
+              print("updated", path)
+
+          if old == new:
+              sys.exit(f"{code} is already titled '{new}'")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"old={old}\n")
+          PY
+
+      - name: Validate
+        run: |
+          uv run boardify check
+          uv run boardify cms-config --check
+
+      - name: Commit to the branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/policies
+          git commit -m "Rename $CODE to $NEW_TITLE"
+          git push origin "HEAD:refs/heads/$BRANCH"

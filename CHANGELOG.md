@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.6
+- New optional `examples/workflows/rename-policy.yml`: on demand, changes the title of one policy (and its Regulation) on a work-in-progress branch, runs `check` and `cms-config --check`, and commits to that branch.
+- `examples/workflows/deploy.yml`: delete the PDF under the old title when a merged change retitles a published policy.
+
 ## 0.4.5
 - New optional `examples/workflows/reading-packet.yml`: on demand, gathers the Draft PDFs artifacts of open pull requests labelled First/Second/Third Reading or Consent into one artifact grouped by label.
 
