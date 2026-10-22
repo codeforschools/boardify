@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.8
+- `examples/workflows/rename-policy.yml`: the only input is the new title. Run it from the work-in-progress branch ("Use workflow from"); the policy is the one that branch changes against the default branch (it stops unless exactly one).
+
 ## 0.4.7
 - `examples/workflows/rename-policy.yml`: also `git mv` the policy folder to `<code>-<new-title-slug>`, so the path (and site URL) follows the title; history is kept.
 - `examples/workflows/deploy.yml`: the changed/removed file lists use `git diff --no-renames`, so a moved folder deletes the old PDFs and uploads the new ones.

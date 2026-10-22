@@ -1,8 +1,9 @@
-# On demand: change the title of one policy that is still a work in progress on a branch. Run it from
-# main (the workflow file lives there), enter the branch, the policy code (####-##) and the new title.
+# On demand: change the title of the policy a work-in-progress branch is changing. In "Use workflow from"
+# pick that branch (it must already contain this file, so update it from main first) and enter the new title.
 # It updates the Policy and its Regulation (their titles must stay identical), renames the folder to
 # <code>-<new-title-slug> with git mv (so the old URL stops working), runs `boardify check`, and commits
 # the change to that branch, so the branch's open pull request picks it up.
+# The policy is the one the branch changes against main; it stops if that is not exactly one policy.
 # A push made with the default token does not start other workflows: close and reopen the pull
 # request once to re-run Draft PDFs and the trustee sign-off gate.
 # For a policy already on main, the deploy replaces the old-title PDF in S3 once the change is merged.
@@ -11,14 +12,6 @@ name: Rename policy
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: Branch holding the policy (its open pull request is updated)
-        required: true
-        type: string
-      code:
-        description: Policy code, e.g. 0403-50
-        required: true
-        type: string
       title:
         description: New title
         required: true
@@ -28,7 +21,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: rename-policy-${{ inputs.branch }}
+  group: rename-policy-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -36,13 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Inputs are data, never interpolated into shell.
-      BRANCH: ${{ inputs.branch }}
-      CODE: ${{ inputs.code }}
+      BRANCH: ${{ github.ref_name }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       NEW_TITLE: ${{ inputs.title }}
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.branch }}
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v7
         with:
@@ -57,10 +50,17 @@ jobs:
           uv run python - <<'PY'
           import glob, json, os, re, subprocess, sys
 
-          code = os.environ["CODE"].strip()
+          if os.environ["BRANCH"] == os.environ["DEFAULT_BRANCH"]:
+              sys.exit("Run this from the branch holding the policy (Use workflow from), not from the default branch")
+          changed = subprocess.run(
+              ["git", "diff", "--name-only", f"origin/{os.environ['DEFAULT_BRANCH']}...HEAD", "--", "content/policies"],
+              capture_output=True, text=True, check=True).stdout.split("\n")
+          codes = sorted({m.group(1) for f in changed
+                          if (m := re.match(r"content/policies/[^/]+/(\d{4}-\d{2})-[^/]+/(?:index|regulation)\.md$", f))})
+          if len(codes) != 1:
+              sys.exit(f"This branch changes {len(codes)} policies ({', '.join(codes) or 'none'}); it must change exactly one")
+          code = codes[0]
           new = " ".join(os.environ["NEW_TITLE"].split())
-          if not re.fullmatch(r"\d{4}-\d{2}", code):
-              sys.exit(f"'{code}' is not a policy code (####-##)")
           if not new:
               sys.exit("The new title is empty")
 
@@ -96,7 +96,7 @@ jobs:
               subprocess.run(["git", "mv", folder, target], check=True)
               print("moved", folder, "->", target)
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
-              out.write(f"old={old}\n")
+              out.write(f"code={code}\n")
           PY
 
       - name: Validate
@@ -105,6 +105,8 @@ jobs:
           uv run boardify cms-config --check
 
       - name: Commit to the branch
+        env:
+          CODE: ${{ steps.rename.outputs.code }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
