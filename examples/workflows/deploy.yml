@@ -71,8 +71,8 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
             base="$BEFORE"
-            git diff -z --name-only --diff-filter=ACMR "$base" "$AFTER" -- content/policies > "$RUNNER_TEMP/changed.z"
-            git diff -z --name-only --diff-filter=D "$base" "$AFTER" -- content/policies > "$RUNNER_TEMP/deleted.z"
+            git diff -z --name-only --no-renames --diff-filter=ACMR "$base" "$AFTER" -- content/policies > "$RUNNER_TEMP/changed.z"
+            git diff -z --name-only --no-renames --diff-filter=D "$base" "$AFTER" -- content/policies > "$RUNNER_TEMP/deleted.z"
           else
             find content/policies -mindepth 3 -name '*.md' -print0 > "$RUNNER_TEMP/changed.z"
             : > "$RUNNER_TEMP/deleted.z"
@@ -84,7 +84,8 @@ jobs:
       - name: Delete PDFs of removed policies
         run: xargs -0 -r uv run boardify delete-pdf --base "$BEFORE" < "$RUNNER_TEMP/deleted.z"
 
-      # A new title means a new PDF name: remove the PDF under the old title.
+      # A new title means a new PDF name: remove the PDF under the old title. (A retitle that also moves
+      # the folder shows up as a delete plus an add above, because those diffs use --no-renames.)
       - name: Delete PDFs of retitled policies
         run: |
           [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] || exit 0

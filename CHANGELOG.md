@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.7
+- `examples/workflows/rename-policy.yml`: also `git mv` the policy folder to `<code>-<new-title-slug>`, so the path (and site URL) follows the title; history is kept.
+- `examples/workflows/deploy.yml`: the changed/removed file lists use `git diff --no-renames`, so a moved folder deletes the old PDFs and uploads the new ones.
+
 ## 0.4.6
 - New optional `examples/workflows/rename-policy.yml`: on demand, changes the title of one policy (and its Regulation) on a work-in-progress branch, runs `check` and `cms-config --check`, and commits to that branch.
 - `examples/workflows/deploy.yml`: delete the PDF under the old title when a merged change retitles a published policy.

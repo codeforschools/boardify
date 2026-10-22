@@ -1,7 +1,8 @@
 # On demand: change the title of one policy that is still a work in progress on a branch. Run it from
 # main (the workflow file lives there), enter the branch, the policy code (####-##) and the new title.
-# It updates the Policy and its Regulation (their titles must stay identical), runs `boardify check`,
-# and commits the change to that branch, so the branch's open pull request picks it up.
+# It updates the Policy and its Regulation (their titles must stay identical), renames the folder to
+# <code>-<new-title-slug> with git mv (so the old URL stops working), runs `boardify check`, and commits
+# the change to that branch, so the branch's open pull request picks it up.
 # A push made with the default token does not start other workflows: close and reopen the pull
 # request once to re-run Draft PDFs and the trustee sign-off gate.
 # For a policy already on main, the deploy replaces the old-title PDF in S3 once the change is merged.
@@ -54,7 +55,7 @@ jobs:
         id: rename
         run: |
           uv run python - <<'PY'
-          import glob, json, os, re, sys
+          import glob, json, os, re, subprocess, sys
 
           code = os.environ["CODE"].strip()
           new = " ".join(os.environ["NEW_TITLE"].split())
@@ -84,6 +85,16 @@ jobs:
 
           if old == new:
               sys.exit(f"{code} is already titled '{new}'")
+
+          # The folder is <code>-<slug>: move it so the path follows the title.
+          slug = re.sub(r"[^a-z0-9]+", "-", new.lower()).strip("-")
+          folder = os.path.dirname(files[0])
+          target = os.path.join(os.path.dirname(folder), f"{code}-{slug}")
+          if target != folder:
+              if os.path.exists(target):
+                  sys.exit(f"{target} already exists")
+              subprocess.run(["git", "mv", folder, target], check=True)
+              print("moved", folder, "->", target)
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"old={old}\n")
           PY
