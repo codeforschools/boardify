@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Collect the Draft PDFs artifacts
         run: |
-          mkdir -p packet/reading-packet
+          mkdir packet
           gh pr list --state open --limit 200 --json number,title,headRefName,headRefOid,labels > "$RUNNER_TEMP/prs.json"
           jq -r --argjson order "$LABELS" '
             .[] | . as $pr
@@ -52,7 +52,7 @@ jobs:
               # gh nests files in a folder named after the artifact (the PR title); flatten every file into one folder
               # (the PDF names already carry the code, kind and title).
               while IFS= read -r -d '' f; do
-                dest="packet/reading-packet/$(basename "$f")"
+                dest="packet/$(basename "$f")"
                 if [ -e "$dest" ]; then
                   echo "::error::Duplicate file name '$(basename "$f")' (PR #$number): two pull requests produce the same file"
                   echo "| #$number | $label | failed: duplicate file name $(basename "$f") |" >> "$GITHUB_STEP_SUMMARY"
