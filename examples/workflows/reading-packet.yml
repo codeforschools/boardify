@@ -44,13 +44,16 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           while IFS=$'\t' read -r number label branch sha title; do
-            # PR titles hold characters that are not safe in a path.
-            name=$(printf '%s' "$number $title" | tr -c 'A-Za-z0-9._ -' '-' | cut -c1-100)
+            # The PDF file names already carry the code, kind and title, so the folder is just the PR number.
+            name="PR $number"
             run=$(gh run list --workflow "Draft PDFs" --branch "$branch" --commit "$sha" --limit 1 \
               --json databaseId --jq '.[0].databaseId // empty')
             if [ -z "$run" ]; then
               result="missing: no Draft PDFs run on the current head commit"
-            elif gh run download "$run" -D "packet/$label/$name"; then
+            elif rm -rf "$RUNNER_TEMP/dl" && gh run download "$run" -D "$RUNNER_TEMP/dl"; then
+              # gh nests files in a folder named after the artifact (the PR title); flatten it.
+              mkdir -p "packet/$label/$name"
+              find "$RUNNER_TEMP/dl" -mindepth 2 -maxdepth 2 -exec mv -t "packet/$label/$name" {} +
               result="included (run $run)"
             else
               result="missing: run $run has no artifact (expired?)"
