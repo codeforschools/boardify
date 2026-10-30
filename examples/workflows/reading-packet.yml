@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Collect the Draft PDFs artifacts
         run: |
-          mkdir packet
+          mkdir -p packet/reading-packet
           gh pr list --state open --limit 200 --json number,title,headRefName,headRefOid,labels > "$RUNNER_TEMP/prs.json"
           jq -r --argjson order "$LABELS" '
             .[] | . as $pr
@@ -44,16 +44,22 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           while IFS=$'\t' read -r number label branch sha title; do
-            # The PDF file names already carry the code, kind and title, so the folder is just the PR number.
-            name="PR $number"
             run=$(gh run list --workflow "Draft PDFs" --branch "$branch" --commit "$sha" --limit 1 \
               --json databaseId --jq '.[0].databaseId // empty')
             if [ -z "$run" ]; then
               result="missing: no Draft PDFs run on the current head commit"
             elif rm -rf "$RUNNER_TEMP/dl" && gh run download "$run" -D "$RUNNER_TEMP/dl"; then
-              # gh nests files in a folder named after the artifact (the PR title); flatten it.
-              mkdir -p "packet/$label/$name"
-              find "$RUNNER_TEMP/dl" -mindepth 2 -maxdepth 2 -exec mv -t "packet/$label/$name" {} +
+              # gh nests files in a folder named after the artifact (the PR title); flatten every file into one folder
+              # (the PDF names already carry the code, kind and title).
+              while IFS= read -r -d '' f; do
+                dest="packet/reading-packet/$(basename "$f")"
+                if [ -e "$dest" ]; then
+                  echo "::error::Duplicate file name '$(basename "$f")' (PR #$number): two pull requests produce the same file"
+                  echo "| #$number | $label | failed: duplicate file name $(basename "$f") |" >> "$GITHUB_STEP_SUMMARY"
+                  exit 1
+                fi
+                mv "$f" "$dest"
+              done < <(find "$RUNNER_TEMP/dl" -type f -print0)
               result="included (run $run)"
             else
               result="missing: run $run has no artifact (expired?)"
