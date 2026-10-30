@@ -15,3 +15,12 @@ def test_body_start_line_counts_frontmatter():
 def test_annotate_skips_blank_lines():
     out = annotate_body("one\n\ntwo\n", start=5)
     assert out == '<span class="ln">5</span>one\n\n<span class="ln">7</span>two\n'
+
+
+def test_annotate_leaves_table_rows_alone():
+    import mistune
+
+    table = "| a | b |\n|---|---|\n| 1 | 2 |\n"
+    out = annotate_body(table, start=5)
+    assert out == table
+    assert "<table>" in mistune.html(out)

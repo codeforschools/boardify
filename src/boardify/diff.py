@@ -87,7 +87,53 @@ def word_diff(old_line, new_line):
     return "".join(out)
 
 
+TABLE_DELIMITER_RE = re.compile(r"^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$")
+CELL_SPLIT_RE = re.compile(r"(?<!\\)\|")
+
+
+def is_table_row(line):
+    return line.lstrip().startswith("|")
+
+
+def is_table_delimiter(line):
+    return is_table_row(line) and bool(TABLE_DELIMITER_RE.match(line))
+
+
+def map_cells(line, fn):
+    """
+    Apply `fn` to the text of each non-empty cell of a table row, keeping
+    the pipes (and the row's leading `|`) intact so mistune still sees a table.
+    """
+    text = line.rstrip("\n")
+    trailing_newline = "\n" if line.endswith("\n") else ""
+    parts = CELL_SPLIT_RE.split(text)
+    for i, part in enumerate(parts):
+        core = part.strip()
+        if core:
+            parts[i] = f" {fn(core)} "
+    return "|".join(parts) + trailing_newline
+
+
+def table_row_diff(old_line, new_line):
+    """
+    Cell-by-cell word diff of two table rows with the same number of cells,
+    or None if the rows can't be paired that way.
+    """
+    old_parts = CELL_SPLIT_RE.split(old_line.rstrip("\n"))
+    new_parts = CELL_SPLIT_RE.split(new_line.rstrip("\n"))
+    if len(old_parts) != len(new_parts):
+        return None
+    cells = [word_diff(o.strip(), n.strip()) for o, n in zip(old_parts, new_parts, strict=True)]
+    text = "|".join(f" {c} " if c.strip() else c for c in cells)
+    return text + ("\n" if new_line.endswith("\n") else "")
+
+
 def wrap_whole_line(line, tag, line_no=None):
+    if is_table_row(line):
+        # No line-number span or whole-row wrapper: either would stop the row being a table row.
+        if is_table_delimiter(line):
+            return line
+        return map_cells(line, lambda cell: f"<{tag}>{cell}</{tag}>")
     text = line.rstrip("\n")
     if not text.strip():
         # Leave blank lines untouched -- mistune relies on genuinely blank
@@ -109,6 +155,19 @@ def number_replaced_line(merged, line_no):
     trailing_newline = "\n" if merged.endswith("\n") else ""
     marker, rest = split_marker(text)
     return f'{marker}<span class="ln">{line_no}</span>{rest}{trailing_newline}'
+
+
+def emit_deleted(out, line):
+    """
+    Append a wholly deleted line. A deleted table delimiter row is kept only
+    when it follows a deleted header row (the whole table went away); on its
+    own it would add a stray row to a table that still exists.
+    """
+    if is_table_delimiter(line):
+        if out and is_table_row(out[-1]) and "<del>" in out[-1]:
+            out.append(line)
+        return
+    out.append(wrap_whole_line(line, "del"))
 
 
 def build_redline_body(old_body, new_body, new_start=1):
@@ -137,15 +196,27 @@ def build_redline_body(old_body, new_body, new_start=1):
             new_chunk = new_lines[j1:j2]
             paired = min(len(old_chunk), len(new_chunk))
             for k in range(paired):
-                merged = word_diff(old_chunk[k], new_chunk[k])
+                old_line, new_line = old_chunk[k], new_chunk[k]
+                if is_table_row(old_line) or is_table_row(new_line):
+                    merged = None
+                    if is_table_delimiter(new_line):
+                        merged = new_line
+                    elif is_table_row(old_line) and is_table_row(new_line):
+                        merged = table_row_diff(old_line, new_line)
+                    if merged is None:
+                        emit_deleted(out, old_line)
+                        merged = wrap_whole_line(new_line, "ins", new_start + j1 + k)
+                    out.append(merged)
+                    continue
+                merged = word_diff(old_line, new_line)
                 out.append(number_replaced_line(merged, new_start + j1 + k))
             for line in old_chunk[paired:]:
-                out.append(wrap_whole_line(line, "del"))
+                emit_deleted(out, line)
             for offset, line in enumerate(new_chunk[paired:]):
                 out.append(wrap_whole_line(line, "ins", new_start + j1 + paired + offset))
         elif tag == "delete":
             for line in old_lines[i1:i2]:
-                out.append(wrap_whole_line(line, "del"))
+                emit_deleted(out, line)
         elif tag == "insert":
             for offset, line in enumerate(new_lines[j1:j2]):
                 out.append(wrap_whole_line(line, "ins", new_start + j1 + offset))

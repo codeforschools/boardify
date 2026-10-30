@@ -31,10 +31,11 @@ def annotate_line(line, line_no):
     Prefix a single markdown source line with a `<span class="ln">` marker
     carrying its source line number, placed after any leading block marker
     so mistune still recognizes the heading/list/blockquote syntax. Blank
-    lines, and lines with no line number to show, pass through unchanged.
+    lines, lines with no line number to show, and table rows (a leading
+    span would stop mistune recognizing the table) pass through unchanged.
     """
     text = line.rstrip("\n")
-    if not text.strip() or line_no is None:
+    if not text.strip() or line_no is None or text.lstrip().startswith("|"):
         return line
     trailing_newline = "\n" if line.endswith("\n") else ""
     marker, rest = split_marker(text)

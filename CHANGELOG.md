@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.11
+- Markdown tables render in PDFs and redlines. The clean-version PDF no longer puts a line-number span in front of table rows (it turned tables into plain text), and redlines mark inserted/deleted/changed text inside table cells instead of wrapping the whole row. Table rows get no line numbers.
+
 ## 0.4.10
 - `examples/workflows/reading-packet.yml`: shorter paths. Each pull request's folder is `PR <number>` (the PDF file names already carry code, kind and title), and the artifact's own nested folder is flattened away.
 
