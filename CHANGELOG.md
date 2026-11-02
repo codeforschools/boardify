@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.1
+- `examples/workflows/meeting-snapshot.yml`: running it again for the same date replaces the `meeting/YYYY-MM-DD` tag instead of failing, and the run summary says when it did.
+
 ## 0.5.0
 - Redlines since an earlier version. `diff` takes `--json PATH` (where to write the JSON) and `--since LABEL` (printed under the title of each redline); `redline` takes `--suffix` (added to the PDF names, so a second set does not overwrite the first). With no options nothing changes.
 - New optional `examples/workflows/meeting-snapshot.yml`: on demand, tags the default branch `meeting/YYYY-MM-DD` with a message listing each open pull request's head commit and title.

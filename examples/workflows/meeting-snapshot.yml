@@ -1,6 +1,7 @@
 # On demand: record what is presented for formal discussion at a Board meeting. Creates one annotated tag,
 # meeting/YYYY-MM-DD, on the default branch. Its message lists every open pull request's head commit and
 # title; draft-pdfs.yml reads it to build a "since the last meeting" redline. Run it at the agenda deadline.
+# Running it again for the same date replaces that tag (the earlier snapshot is gone for good).
 # Copy to .github/workflows/meeting-snapshot.yml in a content repo.
 name: Board packet final draft
 
@@ -40,9 +41,10 @@ jobs:
             exit 1
           fi
           tag="meeting/$MEETING_DATE"
+          replaced=false
           if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
-            echo "::error::$tag already exists."
-            exit 1
+            replaced=true
+            echo "::notice::$tag already exists; replacing it."
           fi
 
           # "pr-N SHA title": the title is for people, and has control characters (newlines) collapsed so
@@ -57,10 +59,13 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$tag" -F "$RUNNER_TEMP/manifest.txt"
-          git push origin "refs/tags/$tag"
+          git tag -fa "$tag" -F "$RUNNER_TEMP/manifest.txt"
+          git push --force origin "refs/tags/$tag"
           {
             echo "## $tag"
+            if [ "$replaced" = true ]; then
+              echo "**Replaced** the earlier snapshot for this date."
+            fi
             echo '```'
             cat "$RUNNER_TEMP/manifest.txt"
             echo '```'
