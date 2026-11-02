@@ -25,9 +25,12 @@ def main(argv=None):
 
     p = sub.add_parser("diff", help="convert output/diff.diff to output/diff.json")
     p.add_argument("--diff-file", default=None)
+    p.add_argument("--json", default=None, help="where to write the JSON (default output/diff.json)")
+    p.add_argument("--since", default=None, help="label for a redline against an earlier version, e.g. 'Changes since 2026-11-16'")
 
     p = sub.add_parser("redline", help="build redline PDFs from output/diff.json")
     p.add_argument("--json", default=None)
+    p.add_argument("--suffix", default="", help="added to each file name, e.g. _since-meeting, so a second set of redlines does not overwrite the first")
 
     p = sub.add_parser("cms-config", help="generate the Sveltia CMS config from the content folders")
     p.add_argument("--check", action="store_true", help="fail if the generated files are out of date")
@@ -43,9 +46,14 @@ def main(argv=None):
     if args.command == "delete-pdf":
         return delete.main(parse_paths(args.paths), cfg, base=args.base)
     if args.command == "diff":
-        return diff.save_json(args.diff_file or f"{cfg['output_dir']}/diff.diff", cfg)
+        return diff.save_json(
+            args.diff_file or f"{cfg['output_dir']}/diff.diff",
+            cfg,
+            json_path=args.json,
+            since=args.since,
+        )
     if args.command == "redline":
-        return redline.main(args.json or f"{cfg['output_dir']}/diff.json", cfg)
+        return redline.main(args.json or f"{cfg['output_dir']}/diff.json", cfg, suffix=args.suffix)
 
 
 if __name__ == "__main__":

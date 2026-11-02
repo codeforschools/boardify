@@ -3,17 +3,17 @@ import json
 from .render import add_brand, get_env, write_pdf
 
 
-def build_redline_pdf(context, cfg):
+def build_redline_pdf(context, cfg, suffix=""):
     context = add_brand(context, cfg)
     output = get_env(cfg).get_template("diff.j2").render(context=context)
-    write_pdf(output, f"{cfg['output_dir']}/{context['filename']}_redline.pdf", cfg)
+    write_pdf(output, f"{cfg['output_dir']}/{context['filename']}_redline{suffix}.pdf", cfg)
 
 
-def main(json_path, cfg):
+def main(json_path, cfg, suffix=""):
     with open(json_path, encoding="utf-8") as f:
         data = json.load(f)
 
     files = data["added_files"] + data["removed_files"] + data["modified_files"]
     for context in files:
-        build_redline_pdf(context, cfg)
+        build_redline_pdf(context, cfg, suffix)
     return 0

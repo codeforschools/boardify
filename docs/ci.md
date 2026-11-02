@@ -1,13 +1,14 @@
 # CI, secrets and roles
 
-`examples/workflows/` has the two workflows a content repo needs, plus two optional ones:
+`examples/workflows/` has the two workflows a content repo needs, plus optional ones:
 
 - `draft-pdfs.yml` — on a pull request: `boardify check`, draft PDFs and redlines as an artifact. The PDFs are built and uploaded even when `check` fails (for example a Regulation PR whose Policy has not merged); the job still ends red.
 - `deploy.yml` — on `main`: `boardify check`, build the site, upload changed PDFs, delete removed ones, deploy Pages.
 - `reading-packet.yml` (optional) — run on demand: collects the Draft PDFs artifacts of every open pull request labelled First Reading, Second Reading, Third Reading or Consent into one `reading-packet` artifact, grouped by label. It reuses the artifacts `draft-pdfs.yml` already uploaded, so a pull request whose current head commit has no Draft PDFs run is listed as missing in the job summary. Edit the `LABELS` list for your own labels.
+- `meeting-snapshot.yml` (optional; the workflow is named "Board packet final draft") — run on demand at the agenda deadline, choosing the meeting date from a list you edit in the file. It creates one annotated tag, `meeting/YYYY-MM-DD`, on the default branch; the tag message lists every open pull request's head commit and title (`pr-12 3f9c1a0… Title`). `draft-pdfs.yml` finds the newest `meeting/*` tag that lists its pull request and builds a second set of redlines, `*_redline_since-meeting.pdf`, against the commit that was presented. A pull request that no tag lists (new since the last meeting) gets only the cumulative redline. `git tag -l 'meeting/*'` is the meeting history.
 - `rename-policy.yml` (optional) — run on demand from the work-in-progress branch ("Use workflow from") with a new title; the policy is the one the branch changes against the default branch. It updates the `title` of the Policy and its Regulation on that branch, moves the folder to `<code>-<new-title-slug>` with `git mv` (the old URL stops working), runs the checks and commits to the branch. A push with the default token does not start other workflows, so close and reopen the pull request once to re-run the draft PDFs. `deploy.yml` removes the PDF under the old title when a merged change retitles a policy already on `main`.
 
-Both pass file names through NUL-separated files and `xargs -0`, never through `${{ }}` interpolation into shell,
+All pass file names through NUL-separated files and `xargs -0`, never through `${{ }}` interpolation into shell,
 so a hostile file name cannot run commands. Keep it that way when editing them. Make the `check` job a required
 status check in branch protection.
 

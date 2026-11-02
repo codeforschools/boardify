@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+- Redlines since an earlier version. `diff` takes `--json PATH` (where to write the JSON) and `--since LABEL` (printed under the title of each redline); `redline` takes `--suffix` (added to the PDF names, so a second set does not overwrite the first). With no options nothing changes.
+- New optional `examples/workflows/meeting-snapshot.yml`: on demand, tags the default branch `meeting/YYYY-MM-DD` with a message listing each open pull request's head commit and title.
+- `examples/workflows/draft-pdfs.yml`: when a `meeting/*` tag lists the pull request, also builds `*_redline_since-meeting.pdf` against the commit that was presented.
+
 ## 0.4.11
 - Markdown tables render in PDFs and redlines. The clean-version PDF no longer puts a line-number span in front of table rows (it turned tables into plain text), and redlines mark inserted/deleted/changed text inside table cells instead of wrapping the whole row. Table rows get no line numbers.
 
