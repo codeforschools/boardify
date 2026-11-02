@@ -1,0 +1,67 @@
+# On demand: record what is presented for formal discussion at a Board meeting. Creates one annotated tag,
+# meeting/YYYY-MM-DD, on the default branch. Its message lists every open pull request's head commit and
+# title; draft-pdfs.yml reads it to build a "since the last meeting" redline. Run it at the agenda deadline.
+# Copy to .github/workflows/meeting-snapshot.yml in a content repo.
+name: Board packet final draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: Board meeting date
+        type: choice
+        required: true
+        # Edit this list for your own meeting dates.
+        options:
+          - "2026-11-09"
+          - "2026-12-14"
+
+permissions:
+  contents: write   # push the tag
+  pull-requests: read
+
+concurrency:
+  group: meeting-snapshot
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      MEETING_DATE: ${{ inputs.date }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Tag the open pull requests
+        run: |
+          if ! printf '%s' "$MEETING_DATE" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+            echo "::error::The date must look like 2026-11-16."
+            exit 1
+          fi
+          tag="meeting/$MEETING_DATE"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::$tag already exists."
+            exit 1
+          fi
+
+          # "pr-N SHA title": the title is for people, and has control characters (newlines) collapsed so
+          # it cannot add a manifest line. It goes through jq and a file, never into shell.
+          {
+            echo "Final Draft Packet for $MEETING_DATE Board Meeting"
+            echo
+            gh pr list --state open --limit 200 --json number,title,headRefOid \
+              | jq -r 'sort_by(.number)[] | "pr-\(.number) \(.headRefOid) \(.title | gsub("[\\p{Cc}]+"; " "))"'
+          } > "$RUNNER_TEMP/manifest.txt"
+          cat "$RUNNER_TEMP/manifest.txt"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -F "$RUNNER_TEMP/manifest.txt"
+          git push origin "refs/tags/$tag"
+          {
+            echo "## $tag"
+            echo '```'
+            cat "$RUNNER_TEMP/manifest.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -223,7 +223,7 @@ def build_redline_body(old_body, new_body, new_start=1):
     return "".join(out)
 
 
-def convert_patchfile(patchfile):
+def convert_patchfile(patchfile, since=None):
     old_hash, new_hash = get_index_hashes(patchfile)
     old_text = get_blob(old_hash)
     new_text = get_blob(new_hash)
@@ -240,6 +240,7 @@ def convert_patchfile(patchfile):
     output["reference"] = meta.get("reference", "")
     output["old_path"] = strip_prefix(patchfile.source_file)
     output["new_path"] = strip_prefix(patchfile.target_file)
+    output["since"] = since or ""
     output["is_rename"] = bool(patchfile.is_rename) and output["old_path"] != output["new_path"]
     output["redline_html"] = markdown_html(build_redline_body(old_body, new_body, new_start))
 
@@ -250,7 +251,7 @@ def convert_patchfile(patchfile):
     return output
 
 
-def convert_patchset(filename):
+def convert_patchset(filename, since=None):
     output = {}
     patchset = PatchSet.from_filename(filename)
 
@@ -259,21 +260,21 @@ def convert_patchset(filename):
     output["removed"] = patchset.removed
 
     output["added_files"] = [
-        convert_patchfile(x) for x in patchset.added_files if x.path.endswith(".md")
+        convert_patchfile(x, since) for x in patchset.added_files if x.path.endswith(".md")
     ]
     output["removed_files"] = [
-        convert_patchfile(x) for x in patchset.removed_files if x.path.endswith(".md")
+        convert_patchfile(x, since) for x in patchset.removed_files if x.path.endswith(".md")
     ]
     output["modified_files"] = [
-        convert_patchfile(x) for x in patchset.modified_files if x.path.endswith(".md")
+        convert_patchfile(x, since) for x in patchset.modified_files if x.path.endswith(".md")
     ]
 
     return output
 
 
-def save_json(filename, cfg):
-    data = convert_patchset(filename)
+def save_json(filename, cfg, json_path=None, since=None):
+    data = convert_patchset(filename, since)
     data["title"] = os.getenv("TITLE", "Policy/Regulation Changes")
-    with open(f"{cfg['output_dir']}/diff.json", "w") as json_file:
+    with open(json_path or f"{cfg['output_dir']}/diff.json", "w") as json_file:
         json.dump(data, json_file, indent=4)
 

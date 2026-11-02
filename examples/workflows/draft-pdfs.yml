@@ -18,6 +18,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ github.event.number }}
       TITLE: ${{ github.event.pull_request.title }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -52,6 +53,31 @@ jobs:
           uv run boardify diff
           uv run boardify redline
           rm output/diff.*
+
+      # Optional, with meeting-snapshot.yml: the newest meeting tag that lists this pull request holds the
+      # commit that was presented. Redline the changed files against it. File contents are compared, not
+      # the commit range, so a merge of main into the branch does not show up as edits.
+      - name: Build redlines since the last meeting
+        run: |
+          tag=$(git tag -l 'meeting/*' --sort=-refname | while read -r t; do
+            if git tag -l --format='%(contents)' "$t" | awk -v n="pr-$PR_NUMBER" '$1 == n { found = 1 } END { exit !found }'; then
+              echo "$t"; break
+            fi
+          done)
+          if [ -z "$tag" ]; then
+            echo "No meeting tag lists this pull request; only the cumulative redline is built."
+            exit 0
+          fi
+          sha=$(git tag -l --format='%(contents)' "$tag" | awk -v n="pr-$PR_NUMBER" '$1 == n { print $2; exit }')
+          if ! git cat-file -e "$sha^{commit}" 2> /dev/null && ! git fetch -q origin "$sha"; then
+            echo "::warning::Could not fetch $sha from $tag; skipping the redline since the last meeting."
+            exit 0
+          fi
+          mkdir -p output
+          xargs -0 -r git diff --no-renames "$sha" "$HEAD_SHA" -- < "$RUNNER_TEMP/changed.z" > output/since.diff
+          uv run boardify diff --diff-file output/since.diff --json output/since.json --since "Changes since meeting ${tag#meeting/}"
+          uv run boardify redline --json output/since.json --suffix _since-meeting
+          rm output/since.*
 
       # Artifact names cannot contain : " < > | * ? \ / or line breaks, which PR titles often do.
       - name: Name the artifact after the PR title
