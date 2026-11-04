@@ -2,8 +2,8 @@
 [project]
 site_name = "boardify"
 site_description = "Tooling for policy-manual sites"
-site_url = "https://codeforschools.github.io/boardify/"
-repo_url = "https://github.com/codeforschools/boardify"
+site_url = "https://dinadesa.github.io/boardify/"
+repo_url = "https://github.com/dinadesa/boardify"
 docs_dir = "docs"
 nav = [
   { "Home" = "index.md" },

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.2
+- The project moved to the `dinadesa` GitHub organization; repository, docs and install URLs point there.
+
 ## 0.5.1
 - `examples/workflows/meeting-snapshot.yml`: running it again for the same date replaces the `meeting/YYYY-MM-DD` tag instead of failing, and the run summary says when it did.
 

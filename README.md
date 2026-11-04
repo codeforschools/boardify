@@ -19,7 +19,7 @@ Python 3.11+. PDFs use WeasyPrint, which needs Pango installed on the system (se
 dependencies = ["boardify"]
 
 [tool.uv.sources]
-boardify = { git = "https://github.com/codeforschools/boardify", tag = "v0.2.0" }
+boardify = { git = "https://github.com/dinadesa/boardify", tag = "v0.2.0" }
 
 [tool.boardify]
 policies_root = "content/policies"
@@ -47,7 +47,7 @@ boardify cms-config [--check]           # generate content/admin/{config.yml,ind
 
 ## Documentation
 
-Published at <https://codeforschools.github.io/boardify/> (built from `docs/` with Zensical: `uv run zensical serve`).
+Published at <https://dinadesa.github.io/boardify/> (built from `docs/` with Zensical: `uv run zensical serve`).
 
 - [Content contract](docs/content-contract.md): folder layout, frontmatter, what `check` enforces, PDF names.
 - [Branding](docs/branding.md): colors, fonts, logo, template overrides; the theme.
